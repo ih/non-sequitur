@@ -29,15 +29,48 @@ for each function existing see if there is an application and get the resulting 
 ************* pass the function and the body of S starting at the current character to unify
 return the unified expression along with variable bindings
 also think about how to have partial unification since that is how inference will work
-https://github.com/stuhlmueller/abstract/blob/master/abstract.ss#L359
+
+for now follow http://www.cs.rit.edu/~anh/UnificationIntro.pdf or an algorithm similar to https://github.com/stuhlmueller/abstract/blob/master/abstract.ss#L359
+
+but there may be a need for higher-order unification see http://stackoverflow.com/a/1955735
+
+essentially check for deep equality, but allow variables in the function body to be wildcards
+
+************** examples
+*************** unification exists
+**************** f has no variables
+F() -> [a b [G d] c]
+data [a b c c]
+unification if [G d] => c
+**************** f has variables
+F(x) -> [a b [G x] c]
+data [a b c c]
+**************** f has the same variable in multiple places
+
+************** pseudo-code
+************** if expression length same
+*************** zip the function body and the expression and for each pair
+**************** if both are tokens
+check for equality and if not equal return false
+**************** if
+************** else
+return false
+
 ************* getting the resulting size
 compute the sizes of the unifications and return the smallest one that is smaller than the original size
 ********** continuous tracking
 with each character keep track of possible applications
 ********* determine compression
 ******** anti-unification (create a new function)
+after compressing via any applicable rules see if there is any compression via anti-unification in sequitur this happened by keeping a dictionary of digrams to determine when there was a match
+
+here rather than matching two characters we need to see if enough characters match to get compression
+
+when a function changes we'll try to anti-unify that function with itself and other functions
 
 
+******** function utility
+after unifications and antiunifications check that all functions are used in more than one place or give compression
 ****** output the final program
 ***** data structures
 ****** expressions
