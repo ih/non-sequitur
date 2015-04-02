@@ -1,9 +1,7 @@
+import ipdb
+
 import antiunification
 import unification
-
-# TODO add expression abstract class if necessary, make function, variable, etc
-# expressions
-APPLICATION_PLACEHOLDER = '*'
 
 
 def size(expression):
@@ -13,8 +11,17 @@ def size(expression):
         return 1
 
 
-def substitute():
-    pass
+def substitute(function_name, place_holder, application_body):
+    """replace the place_holder with function_name in application_body"""
+    substitution = []
+    for term in application_body:
+        if term == place_holder:
+            substitution.append(function_name)
+        elif type(term) is list:
+            substitution.append(substitute(function_name, place_holder, term))
+        else:
+            substitution.append(term)
+    return substitution
 
 
 class Symbol(object):
@@ -52,7 +59,7 @@ class Function(object):
     def check(self):
         # apply existing functions
         best_substitution, new_body = self.find_best_unification()
-        if size(new_body) < size(self.body):
+        if new_body and (size(new_body) < size(self.body)):
             self.body = new_body
             self.check()
         else:
@@ -61,20 +68,23 @@ class Function(object):
             # {name: function_name, body: body_with_application}
             new_parameters, new_body, application_self, application_other = (
                 self.find_best_antiunification())
-            other_function = Function.index[application_other['name']]
+            if application_other:
+                other_function = Function.index[application_other['name']]
             application_self_is_smaller = (
+                application_self and
                 size(application_self['body']) < size(self.body))
             application_other_is_smaller = (
+                application_other and
                 size(application_other['body']) < size(other_function.body))
             if application_self_is_smaller and application_other_is_smaller:
                 new_function = Function(
                     parameters=new_parameters, body=new_body)
                 application_self_body = substitute(
-                    new_function.name, APPLICATION_PLACEHOLDER,
-                    application_self)
+                    new_function.name, antiunification.APPLICATION_PLACEHOLDER,
+                    application_self['body'])
                 application_other_body = substitute(
-                    new_function.name, APPLICATION_PLACEHOLDER,
-                    application_other)
+                    new_function.name, antiunification.APPLICATION_PLACEHOLDER,
+                    application_other['body'])
                 self.body = application_self_body
                 self.check()
                 other_function.body = application_other_body
@@ -89,7 +99,13 @@ class Function(object):
 
     def __str__(self):
         string_parameters = [str(parameter) for parameter in self.parameters]
-        return '[%s %s %s]' % (str(self.name), string_parameters, self.body)
+        string_body = []
+        for term in self.body:
+            if type(term) is list:
+                string_body.append([str(subterm) for subterm in term])
+            else:
+                string_body.append(str(term))
+        return '[%s %s %s]' % (str(self.name), string_parameters, string_body)
 
 
 def main(data):
@@ -97,3 +113,7 @@ def main(data):
     for character in data:
         data_program.body.append(character)
         data_program.check()
+    print data_program
+
+
+test_data = 'abcdbcabcd'
