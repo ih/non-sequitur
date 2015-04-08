@@ -25,6 +25,9 @@ first check if any existing rules can be applied if there is one that compresses
 ********** brute force
 for each function existing see if there is an application and get the resulting sizes
 *********** loop through the functions in the environment
+************ examples
+f(x) -> [1, 2, x, 2, x]
+
 ************ for each character in the body of S see if there is an application at that point
 ************* pass the function and the body of S starting at the current character to unify
 return the unified expression along with variable bindings
@@ -35,7 +38,20 @@ for now follow http://www.cs.rit.edu/~anh/UnificationIntro.pdf or an algorithm s
 but there may be a need for higher-order unification see http://stackoverflow.com/a/1955735
 
 essentially check for deep equality, but allow variables in the function body to be wildcards
+************** questions
+*************** is it possible the initial environment is non-empty?
+let's say no for now...every time we start unification it's to see a a function a can be applied in the body of b so there's no context
 
+target_function is the body of some function, so there may be variables, but these would be treated as constants
+
+[x 1 [+ 1 2]]
+[y 1 [+ 2 3]]
+
+unified...
+[z1 1 [+ z2 z3]]
+
+f(x) = z(x, 1, 2)
+g(y) = z(y, 2, 3)
 ************** examples
 *************** unification exists
 **************** f has no variables
@@ -48,16 +64,10 @@ data [a b c c]
 **************** f has the same variable in multiple places
 
 ************** pseudo-code
-************** if expression length same
-*************** zip the function body and the expression and for each pair
-**************** if both are tokens
-check for equality and if not equal return false
-**************** if
-************** else
-return false
-
 ************* getting the resulting size
 compute the sizes of the unifications and return the smallest one that is smaller than the original size
+
+
 ********** continuous tracking
 with each character keep track of possible applications
 ********* determine compression
@@ -102,3 +112,7 @@ a hash table where keys are variables
 http://stackoverflow.com/questions/4901815/object-of-custom-type-as-dictionary-key
 ****** Data
 we'll keep data as a list of tokens for now
+**** patterns
+***** abacdcefe or even abacbcdbdebe
+no duplicate bigrams, but
+f(x,y) = xyx is a pattern

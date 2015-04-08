@@ -58,9 +58,9 @@ class Function(object):
 
     def check(self):
         # apply existing functions
-        best_substitution, new_body = self.find_best_unification()
-        if new_body and (size(new_body) < size(self.body)):
-            self.body = new_body
+        best_unification = self.find_best_unification()
+        if best_unification['size_difference'] > 0:
+            self.body = best_unification['new_body']
             self.check()
         else:
             # create a new function if it helps
@@ -92,7 +92,16 @@ class Function(object):
         # remove any underutilized functions
 
     def find_best_unification(self):
-        return unification.find_best(self)
+        """argument mapping for the function that best compressed target_
+        function.
+        Returns:
+            {
+                bindings: dictionary
+                new_body: expression with application
+                size_difference: size without application minus size with
+            }
+        """
+        return unification.find_best(self, Function.index)
 
     def find_best_antiunification(self):
         return antiunification.find_best(self)
