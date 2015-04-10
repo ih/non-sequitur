@@ -46,6 +46,38 @@ class TestUnificationMethods(unittest.TestCase):
                 variable, expression_without_variable, {}),
             False)
 
+    def test_apply_function(self):
+        variable1 = language.Symbol('V')
+        variable2 = language.Symbol('V')
+        function_name = language.Symbol('F')
+        test_function = language.Function(
+            name=function_name,
+            parameters=[variable1, variable2],
+            body=['+', 3, variable1, 4, variable2])
+        test_expression = ['a', 5, '+', 3, 2, 4, 5, 7]
+        test_bindings = {
+            variable1: 2,
+            variable2: 5
+        }
+        self.assertEqual(
+            unification.apply_function(
+                test_expression, 2, test_bindings, test_function),
+            ['a', 5, [function_name, 2, 5], 7])
+
+    def test_unify(self):
+        x = language.Symbol('V')
+        y = language.Symbol('V')
+        z = language.Symbol('V')
+        self.assertEqual(unification.unify(['+', x, 1], ['+', x, 1], {}), {})
+        self.assertEqual(
+            unification.unify(['+', x, 1], ['+', x, y], {}), {y: 1})
+        self.assertEqual(
+            unification.unify(['+', x, z], ['+', x, y], {}), {z: y})
+        self.assertEqual(
+            unification.unify(['+', x, 1, 2], ['+', 1, x, x], {}), False)
+        self.assertEqual(
+            unification.unify([x, y, 'a'], [y, x, x], {}), {y: 'a', x: y})
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,30 +37,51 @@ def find_best(target_function, possible_functions):
     return best_unification
 
 
+def apply_function(expression, start_index, bindings, function):
+    """Replace part of expression with an application of function"""
+    # remove the part of expression being replaced
+    abbreviated_expression = (
+        expression[0:start_index] +
+        expression[start_index+len(function.body):])
+    # create the function application
+    application = (
+        [function.name] +
+        [bindings[parameter] for parameter in function.parameters])
+    # insert the application into the expression
+    abbreviated_expression.insert(start_index, application)
+    return abbreviated_expression
+
+
 def unify(expression1, expression2, environment):
-    if not environment:
+    if environment is False:
         return False
-    evaluated_expression1 = evaluate(expression1)
-    evaluated_expression2 = evaluate(expression2)
+    evaluated_expression1 = evaluate(expression1, environment)
+    evaluated_expression2 = evaluate(expression2, environment)
     if evaluated_expression1 == evaluated_expression2:
         return environment
-    elif language.is_variable(expression1):
-        if occurs_within(expression1, expression2, environment):
+    elif language.is_variable(evaluated_expression1):
+        if occurs_within(
+                evaluated_expression1, evaluated_expression2, environment):
             return False
         else:
-            environment[expression1] = expression2
+            environment[evaluated_expression1] = evaluated_expression2
             return environment
-    elif language.is_variable(expression2):
-        if occurs_within(expression2, expression1, environment):
+    elif language.is_variable(evaluated_expression2):
+        if occurs_within(
+                evaluated_expression2, evaluated_expression1, environment):
             return False
         else:
-            environment[expression2] = expression1
+            environment[evaluated_expression2] = evaluated_expression1
             return environment
-    elif type(expression1) is list and type(expression2) is list:
-        new_environment = unify(expression1[0], expression2[0], environment)
-        return unify(expression1[1:], expression2[1:], new_environment)
+    elif (type(evaluated_expression1) is list and
+          type(evaluated_expression2) is list):
+        new_environment = unify(
+            evaluated_expression1[0], evaluated_expression2[0], environment)
+        return unify(
+            evaluated_expression1[1:], evaluated_expression2[1:],
+            new_environment)
     else:
-        False
+        return False
 
 
 def occurs_within(variable, expression, environment):
