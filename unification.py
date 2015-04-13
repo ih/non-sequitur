@@ -19,16 +19,19 @@ def find_best(target_function, possible_functions):
         if len(function.body) > len(target_function.body):
             continue
         last_start_index = len(target_function.body) - len(function.body)
+
         for start_index in range(0, last_start_index+1):
             bindings = unify(
-                target_function.body[start_index: len(function.body)],
+                target_function.body[
+                    start_index: start_index+len(function.body)],
                 function.body, {})
-            if bindings:
+            if bindings is not False:
                 new_target_body = apply_function(
                     target_function.body, start_index, bindings, function)
                 size_difference = (
-                    len(target_function.body) - len(new_target_body))
-                if size_difference < best_unification['size_difference']:
+                    language.size(target_function.body) -
+                    language.size(new_target_body))
+                if size_difference > best_unification['size_difference']:
                     best_unification = {
                         'bindings': bindings,
                         'new_body': new_target_body,
@@ -75,6 +78,7 @@ def unify(expression1, expression2, environment):
             return environment
     elif (type(evaluated_expression1) is list and
           type(evaluated_expression2) is list):
+
         new_environment = unify(
             evaluated_expression1[0], evaluated_expression2[0], environment)
         return unify(

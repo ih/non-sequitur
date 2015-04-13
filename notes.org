@@ -112,6 +112,10 @@ a hash table where keys are variables
 http://stackoverflow.com/questions/4901815/object-of-custom-type-as-dictionary-key
 ****** Data
 we'll keep data as a list of tokens for now
+**** testing
+***** find_best
+make sure the first part of [1, 1, 1, 1, 2, 2, 2] unifies with [1, 1, 1, 1]
+also [2, 2, 2] unifies with the tail of [1, 1, 1, 1, 2, 2, 2]
 **** patterns
 ***** abacdcefe or even abacbcdbdebe
 no duplicate bigrams, but

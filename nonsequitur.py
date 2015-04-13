@@ -1,15 +1,6 @@
-import ipdb
-
 import language
 import antiunification
 import unification
-
-
-def size(expression):
-    if type(expression) is list:
-        return sum([size(term) for term in expression])
-    else:
-        return 1
 
 
 def substitute(function_name, place_holder, application_body):
@@ -42,10 +33,12 @@ def check(function):
             other_function = language.Function.index[application_other['name']]
         application_this_is_smaller = (
             application_this and
-            size(application_this['body']) < size(function.body))
+            language.size(application_this['body']) <
+            language.size(function.body))
         application_other_is_smaller = (
             application_other and
-            size(application_other['body']) < size(other_function.body))
+            language.size(application_other['body']) <
+            language.size(other_function.body))
         if application_this_is_smaller and application_other_is_smaller:
             new_function = language.Function(
                 parameters=new_parameters, body=new_body)

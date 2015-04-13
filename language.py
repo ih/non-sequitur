@@ -1,6 +1,13 @@
 VARIABLE_PREFIX = 'V'
 
 
+def size(expression):
+    if type(expression) is list:
+        return sum([size(term) for term in expression])
+    else:
+        return 1
+
+
 class Symbol(object):
     prefix_counter = {}
 
@@ -25,7 +32,14 @@ class Symbol(object):
 class Function(object):
     index = {}
 
-    def __init__(self, name=Symbol('F'), parameters=[], body=[]):
+    @classmethod
+    def reset_index(cls):
+        cls.index = {}
+
+    def __init__(self, name=None, parameters=[], body=[]):
+        # can't set default argument to Symbol('F') since it is only run once
+        if name is None:
+            name = Symbol('F')
         self.name = name
         self.parameters = parameters
         self.body = body
