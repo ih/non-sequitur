@@ -78,7 +78,20 @@ here rather than matching two characters we need to see if enough characters mat
 
 when a function changes we'll try to anti-unify that function with itself and other functions
 
+********* find_best
+try to anti-unify the target_function with the body of all other functions (including itself)
+this will be slow, maybe keep track of what changed and pass that to check, then only look for anti-unifications against subexpressions including the changed parts
 
+********** get the subexpressions of each function then antiunify possible pairs
+one way to get subexpressions is to take substrings of length n and greater at each level where n is the minimum subexpression length does this introduce some sort of bias?
+
+eventually we should try to create functions where variables capture uncertainty in both value at that position as well as different values
+
+[1 1 x 1]
+
+[1 1 x y 1]
+
+[1 1 x y z 1]
 ******** function utility
 after unifications and antiunifications check that all functions are used in more than one place or give compression
 ****** output the final program
@@ -112,10 +125,6 @@ a hash table where keys are variables
 http://stackoverflow.com/questions/4901815/object-of-custom-type-as-dictionary-key
 ****** Data
 we'll keep data as a list of tokens for now
-**** testing
-***** find_best
-make sure the first part of [1, 1, 1, 1, 2, 2, 2] unifies with [1, 1, 1, 1]
-also [2, 2, 2] unifies with the tail of [1, 1, 1, 1, 2, 2, 2]
 **** patterns
 ***** abacdcefe or even abacbcdbdebe
 no duplicate bigrams, but

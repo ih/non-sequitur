@@ -6,10 +6,11 @@ def find_best(target_function, possible_functions):
     Args:
         target_function - Function object function to be compressed
         possible_functions - possible functions to apply
-    Returns:
-        (best_substitution, new_body) - best_substitution is the parameter
-    argument mapping for the function that best compressed target_function.
-    new_body is the body of the target_function with the best function applied
+    Returns: {
+        bindings - {variable: value,...},
+        new_body - [],
+        size_difference - integer,
+    }
     """
     best_unification = {
         'bindings': {}, 'new_body': [], 'size_difference': 0}
