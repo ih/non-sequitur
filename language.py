@@ -13,11 +13,16 @@ class Symbol(object):
 
     def __init__(self, prefix='S'):
         if prefix in Symbol.prefix_counter:
-            Symbol.prefix_counter[prefix] += 1
             self.value = prefix + str(Symbol.prefix_counter[prefix])
+            Symbol.prefix_counter[prefix] += 1
         else:
-            Symbol.prefix_counter[prefix] = 0
             self.value = prefix + '0'
+            Symbol.prefix_counter[prefix] = 1
+
+
+    @classmethod
+    def reset_counter(cls):
+        cls.prefix_counter = {}
 
     def __hash__(self):
         return hash(self.value)

@@ -1,32 +1,6 @@
-import unittest
 import language
-import nonsequitur
 import unification
-
-
-class TestNonSequiturMethods(unittest.TestCase):
-    def test_substitute(self):
-        name = language.Symbol('test')
-        after_application = nonsequitur.substitute(
-            name, '*', ['*', ['*', 2, 3], '*'])
-        self.assertEqual(after_application, [name, [name, 2, 3], name])
-
-
-class TestLanguage(unittest.TestCase):
-    def test_size(self):
-        self.assertEqual(language.size([1, [2, 3], 4]), 4)
-
-    def test_symbol(self):
-        language.Symbol()
-        language.Symbol()
-        self.assertEquals(len(language.Symbol.prefix_counter), 2)
-
-    def test_function_reset_index(self):
-        language.Function()
-        language.Function()
-        self.assertGreater(len(language.Function.index.keys()), 0)
-        language.Function.reset_index()
-        self.assertEqual(len(language.Function.index.keys()), 0)
+import unittest
 
 
 class TestUnificationMethods(unittest.TestCase):
@@ -114,7 +88,3 @@ class TestUnificationMethods(unittest.TestCase):
                 'new_body': [[good_function.name], 2, 2, 2],
                 'size_difference': 3
             })
-
-
-if __name__ == '__main__':
-    unittest.main()

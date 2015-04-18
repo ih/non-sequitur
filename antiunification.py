@@ -1,11 +1,12 @@
 import collections
+import language
 # expressions
 APPLICATION_PLACEHOLDER = '*'
 MINIMUM_SUBEXPRESSION_LENGTH = 4
 
 
 def find_best(target_function, possible_functions):
-    """creates a new function and shows how it gets applied
+    """Creates a new function and shows how it gets applied.
     args:
         target_function - the function to be checked against all other function
     Returns:  {
@@ -31,9 +32,9 @@ def find_best(target_function, possible_functions):
     }
     target_function_subexpressions = generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-    for function in possible_functions:
+    for other_function in possible_functions:
         function_subexpressions = generate_subexpressions(
-            function.body, MINIMUM_SUBEXPRESSION_LENGTH)
+            other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
@@ -44,9 +45,11 @@ def find_best(target_function, possible_functions):
             'size_difference': 0
         }
         # this can probably be parallelized
-        for target_subexpression, function_subexpression in subexpression_pairs:
+        for target_subexpression, other_subexpression in subexpression_pairs:
             antiunification = antiunify(
-                target_subexpression, function_subexpression)
+                target_subexpression, other_subexpression)
+            # TODO apply new function from antiunify to get
+            # antiunification data
             if (antiunification['size_difference'] >
                     best_function_antiunification['size_difference']):
                 best_function_antiunification = antiunification
@@ -111,5 +114,51 @@ def generate_possible_pairs(expression_list1, expression_list2):
     return pairs
 
 
-def antiunify():
-    pass
+def antiunify(expression1, expression2):
+    """Create a new function from two expressions by replacing the differences
+    with variables.
+
+    e.g. [+, [-, 3, 4], 2] and [+, [*, 3, 4] , 3] => [+, [x, 3, 4], y]
+
+    Returns:
+        parameters - [variables]
+        abstract_expression - [expression containing variables]
+    """
+    if len(expression1) != len(expression2):
+        return False
+    abstract_expression = []
+    expression_queue1 = collections.deque([(expression1, abstract_expression)])
+    expression_queue2 = collections.deque([expression2])
+    # key is the variable name
+    # value the value of the variable in each expression
+    parameters = {}
+
+    while len(expression_queue1) > 0:
+        (current_expression1,
+         current_abstract_expression) = expression_queue1.popleft()
+        current_expression2 = expression_queue2.popleft()
+
+        for index, term1 in enumerate(current_expression1):
+            term2 = current_expression2[index]
+            if term1 == term2:
+                current_abstract_expression.append(term1)
+            elif (type(term1) is list and type(term2) is list and
+                  len(term1) == len(term2)):
+                current_abstract_expression.append([])
+                expression_queue1.append(
+                    (term1, current_abstract_expression[-1]))
+                expression_queue2.append(term2)
+            else:
+                variable = language.Symbol(language.VARIABLE_PREFIX)
+                parameters[variable] = (term1, term2)
+                current_abstract_expression.append(variable)
+    parameters, abstract_expression = reduce_parameters(
+        parameters, abstract_expression)
+    return parameters, abstract_expression
+
+
+def reduce_parameters(parameters, abstract_expression):
+    # TODO if different variables take on the same values then reduce to
+    # the same variable
+    # e.g. {x: (4, 2), y: (4, 2)} => {x: (4, 2)}
+    return parameters, abstract_expression
