@@ -53,10 +53,12 @@ def find_best(target_function, possible_functions):
                 target_subexpression, other_subexpression)
             applied_in_target = apply_abstract_expression(
                 target_function.body, target_subexpression,
-                parameters['expression1_arguments'])
+                parameters['variables'],
+                parameters['expression1_bindings'])
             applied_in_other = apply_abstract_expression(
                 other_function.body, other_subexpression,
-                parameters['expression2_arguments'])
+                parameters['variables'],
+                parameters['expression2_bindings'])
             new_total_size = (
                 language.size(applied_in_target) +
                 language.size(applied_in_other) +
@@ -76,7 +78,7 @@ def find_best(target_function, possible_functions):
     return best_overall_antiunification
 
 
-def apply_abstract_expression(expression, subexpression, arguments):
+def apply_abstract_expression(expression, subexpression, variables, bindings):
     """
     it'd be more efficient if there was a reference to the position of the
     subexpression in function instead of searching.  also by relying on search
@@ -86,7 +88,7 @@ def apply_abstract_expression(expression, subexpression, arguments):
     of the subexpression and now we only need to antiunify one
     """
 
-    function_call = ['?'] + arguments
+    function_call = ['?'] + [bindings[variable] for variable in variables]
     applied_expression = []
     subexpression_queue = collections.deque(
         [(expression, applied_expression)])
@@ -119,7 +121,11 @@ def antiunify(expression1, expression2):
     e.g. [+, [-, 3, 4], 2] and [+, [*, 3, 4] , 3] => [+, [x, 3, 4], y]
 
     Returns:
-        parameters - {variable: (term1_bound_value, term2 bound_value),...}
+        parameters - {
+            'variables': [variable, ...],
+            'expression1_arguments': {'variable': value, ...},
+            'expression2_arguments': {'variable': value, ...}
+        }
         abstract_expression - [expression containing variables]
     """
     if len(expression1) != len(expression2):
@@ -147,7 +153,7 @@ def antiunify(expression1, expression2):
                     (term1, current_abstract_expression[-1]))
                 expression_queue2.append(term2)
             else:
-                new_variable = language.Symbol(language.VARIABLE_PREFIX)
+                new_variable = language.make_variable()
                 parameters[new_variable] = (term1, term2)
                 current_abstract_expression.append(new_variable)
     parameters, abstract_expression = reduce_parameters(
@@ -156,10 +162,10 @@ def antiunify(expression1, expression2):
     variables = parameters.keys()
     parameters = {
         'variables': variables,
-        'expression1_arguments': [
-            parameters[variable][0] for variable in variables],
-        'expression2_arguments': [
-            parameters[variable][1] for variable in variables]
+        'expression1_bindings': dict([
+            (variable, parameters[variable][0]) for variable in variables]),
+        'expression2_bindings': dict([
+            (variable, parameters[variable][1]) for variable in variables])
     }
     return parameters, abstract_expression
 

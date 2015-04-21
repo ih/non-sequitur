@@ -19,7 +19,6 @@ class Symbol(object):
             self.value = prefix + '0'
             Symbol.prefix_counter[prefix] = 1
 
-
     @classmethod
     def reset_counter(cls):
         cls.prefix_counter = {}
@@ -61,6 +60,10 @@ class Function(object):
             else:
                 string_body.append(str(term))
         return '[%s %s %s]' % (str(self.name), string_parameters, string_body)
+
+
+def make_variable():
+    return Symbol(VARIABLE_PREFIX)
 
 
 def is_variable(expression):
