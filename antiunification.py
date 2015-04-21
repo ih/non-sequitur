@@ -32,9 +32,12 @@ def find_best(target_function, possible_functions):
     }
     target_function_subexpressions = generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
+    target_function_size = language.size(target_function)
     for other_function in possible_functions:
         function_subexpressions = generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
+        other_function_size = language.size(other_function)
+        total_size = target_function_size + other_function_size
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
@@ -46,26 +49,139 @@ def find_best(target_function, possible_functions):
         }
         # this can probably be parallelized
         for target_subexpression, other_subexpression in subexpression_pairs:
-            antiunification = antiunify(
+            parameters, abstract_expression = antiunify(
                 target_subexpression, other_subexpression)
-            # TODO apply new function from antiunify to get
-            # antiunification data
-            if (antiunification['size_difference'] >
+            applied_in_target = apply_abstract_expression(
+                target_function.body, target_subexpression,
+                parameters['expression1_arguments'])
+            applied_in_other = apply_abstract_expression(
+                other_function.body, other_subexpression,
+                parameters['expression2_arguments'])
+            new_total_size = (
+                language.size(applied_in_target) +
+                language.size(applied_in_other) +
+                language.size(abstract_expression))
+            new_size_difference = total_size - new_total_size
+            if (new_size_difference >
                     best_function_antiunification['size_difference']):
-                best_function_antiunification = antiunification
+                best_function_antiunification = {
+                    'new_parameters': parameters,
+                    'new_body': abstract_expression,
+                    'applied_in_target': applied_in_target,
+                    'applied_in_other': applied_in_other
+                }
         if (best_function_antiunification['size_difference'] >
                 best_overall_antiunification['size_difference']):
             best_overall_antiunification = best_function_antiunification
     return best_overall_antiunification
 
+
+def apply_abstract_expression(expression, subexpression, arguments):
+    """
+    it'd be more efficient if there was a reference to the position of the
+    subexpression in function instead of searching.  also by relying on search
+    we need to enforce uniqueness of subexpressions when generating them
+
+    actually maybe this is more efficient since we replace multiple
+    of the subexpression and now we only need to antiunify one
+    """
+
+    function_call = ['?'] + arguments
+    applied_expression = []
+    subexpression_queue = collections.deque(
+        [(expression, applied_expression)])
+
+    while len(subexpression_queue) > 0:
+        current_subexpression, current_applied = subexpression_queue
+        start_index = 0
+        while start_index < (len(current_subexpression)-len(subexpression))+1:
+            current_segment = current_subexpression[
+                start_index: start_index+len(subexpression)]
+            if (current_segment == subexpression):
+                current_applied.append(function_call)
+                start_index += len(subexpression)
+            else:
+                term = current_subexpression[start_index]
+                start_index += 1
+                if type(term) is list:
+                    current_applied.append([])
+                    subexpression_queue.append(term, current_applied[-1])
+                else:
+                    current_applied.append(term)
+
+    return applied_expression
+
+
+def antiunify(expression1, expression2):
+    """Create a new function from two expressions by replacing the differences
+    with variables.
+
+    e.g. [+, [-, 3, 4], 2] and [+, [*, 3, 4] , 3] => [+, [x, 3, 4], y]
+
+    Returns:
+        parameters - {variable: (term1_bound_value, term2 bound_value),...}
+        abstract_expression - [expression containing variables]
+    """
+    if len(expression1) != len(expression2):
+        return False
+    abstract_expression = []
+    expression_queue1 = collections.deque([(expression1, abstract_expression)])
+    expression_queue2 = collections.deque([expression2])
+    # key is the variable name
+    # value the value of the variable in each expression
+    parameters = {}
+
+    while len(expression_queue1) > 0:
+        (current_expression1,
+         current_abstract_expression) = expression_queue1.popleft()
+        current_expression2 = expression_queue2.popleft()
+
+        for index, term1 in enumerate(current_expression1):
+            term2 = current_expression2[index]
+            if term1 == term2:
+                current_abstract_expression.append(term1)
+            elif (type(term1) is list and type(term2) is list and
+                  len(term1) == len(term2)):
+                current_abstract_expression.append([])
+                expression_queue1.append(
+                    (term1, current_abstract_expression[-1]))
+                expression_queue2.append(term2)
+            else:
+                new_variable = language.Symbol(language.VARIABLE_PREFIX)
+                parameters[new_variable] = (term1, term2)
+                current_abstract_expression.append(new_variable)
+    parameters, abstract_expression = reduce_parameters(
+        parameters, abstract_expression)
+    # reformat parameters data for convenience
+    variables = parameters.keys()
+    parameters = {
+        'variables': variables,
+        'expression1_arguments': [
+            parameters[variable][0] for variable in variables],
+        'expression2_arguments': [
+            parameters[variable][1] for variable in variables]
+    }
+    return parameters, abstract_expression
+
+
+def reduce_parameters(parameters, abstract_expression):
+    # TODO if different variables take on the same values then reduce to
+    # the same variable
+    # e.g. {x: (4, 2), y: (4, 2)} => {x: (4, 2)}
+    return parameters, abstract_expression
+
 # make the following private to module or add to language?
 
 
 def generate_subexpressions(expression, minimum_length):
-    """ Produce all subarrays of length minimum_length or greater
+    """ Produce all unique* subarrays of length minimum_length or greater
     e.g. for [[1, 2, 3], 5, [7, 8]] w/ minimum_length 2
     we'd get [[[1,2,3], 5], [5, [7. 8]], [1, 2], [2, 3], [7, 8],
     [[1,2,3], 5, [7, 8]], [1, 2, 3]]
+
+    We use unique subexpressions so we can find and replace when applying new
+    abstractions.  This works because we look for antiunifications between a
+    function and itself.
     """
     subexpressions = []
     possible_lengths = sorted(find_term_lengths(expression, minimum_length))
@@ -112,53 +228,3 @@ def generate_possible_pairs(expression_list1, expression_list2):
             if len(expression1) == len(expression2):
                 pairs.append((expression1, expression2))
     return pairs
-
-
-def antiunify(expression1, expression2):
-    """Create a new function from two expressions by replacing the differences
-    with variables.
-
-    e.g. [+, [-, 3, 4], 2] and [+, [*, 3, 4] , 3] => [+, [x, 3, 4], y]
-
-    Returns:
-        parameters - [variables]
-        abstract_expression - [expression containing variables]
-    """
-    if len(expression1) != len(expression2):
-        return False
-    abstract_expression = []
-    expression_queue1 = collections.deque([(expression1, abstract_expression)])
-    expression_queue2 = collections.deque([expression2])
-    # key is the variable name
-    # value the value of the variable in each expression
-    parameters = {}
-
-    while len(expression_queue1) > 0:
-        (current_expression1,
-         current_abstract_expression) = expression_queue1.popleft()
-        current_expression2 = expression_queue2.popleft()
-
-        for index, term1 in enumerate(current_expression1):
-            term2 = current_expression2[index]
-            if term1 == term2:
-                current_abstract_expression.append(term1)
-            elif (type(term1) is list and type(term2) is list and
-                  len(term1) == len(term2)):
-                current_abstract_expression.append([])
-                expression_queue1.append(
-                    (term1, current_abstract_expression[-1]))
-                expression_queue2.append(term2)
-            else:
-                variable = language.Symbol(language.VARIABLE_PREFIX)
-                parameters[variable] = (term1, term2)
-                current_abstract_expression.append(variable)
-    parameters, abstract_expression = reduce_parameters(
-        parameters, abstract_expression)
-    return parameters, abstract_expression
-
-
-def reduce_parameters(parameters, abstract_expression):
-    # TODO if different variables take on the same values then reduce to
-    # the same variable
-    # e.g. {x: (4, 2), y: (4, 2)} => {x: (4, 2)}
-    return parameters, abstract_expression
