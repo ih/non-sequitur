@@ -1,3 +1,6 @@
+import collections
+import utility
+
 VARIABLE_PREFIX = 'V'
 
 
@@ -69,3 +72,61 @@ def make_variable():
 def is_variable(expression):
     return (isinstance(expression, Symbol) and
             expression.value.startswith(VARIABLE_PREFIX))
+
+
+def generate_subexpressions(expression, minimum_length):
+    """ Produce all unique* subarrays of length minimum_length or greater
+    e.g. for [[1, 2, 3], 5, [7, 8]] w/ minimum_length 2
+    we'd get [[[1,2,3], 5], [5, [7. 8]], [1, 2], [2, 3], [7, 8],
+    [[1,2,3], 5, [7, 8]], [1, 2, 3]]
+
+    * We use unique subexpressions so we can find and replace when applying new
+    abstractions.  This works because we look for antiunifications between a
+    function and itself.
+    """
+    subexpressions = set([])
+    possible_lengths = range(minimum_length, longest_term_length(expression)+1)
+    for length in possible_lengths:
+        subexpressions.update(
+            utility.list2tuple(
+                generate_subexpressions_of_length(expression, length)))
+    return [
+        utility.tuple2list(subexpression) for subexpression in subexpressions]
+
+
+def longest_term_length(expression):
+    expression_queue = collections.deque([expression])
+    max_length = 0
+    while len(expression_queue) > 0:
+        current_expression = expression_queue.popleft()
+        if len(current_expression) > max_length:
+            max_length = len(current_expression)
+        for term in current_expression:
+            if type(term) is list:
+                expression_queue.append(term)
+    return max_length
+
+
+def generate_subexpressions_of_length(expression, length):
+    expression_queue = collections.deque([expression])
+    # TODO make subexpressions a set
+    subexpressions = []
+    while len(expression_queue) > 0:
+        current_expression = expression_queue.popleft()
+        if len(current_expression) >= length:
+            for i in range(0, len(current_expression) - length + 1):
+                subexpressions.append(current_expression[i:length+i])
+        for term in current_expression:
+            if type(term) is list:
+                expression_queue.append(term)
+    return subexpressions
+
+
+def generate_possible_pairs(expression_list1, expression_list2):
+    # TODO make pairs a set
+    pairs = []
+    for expression1 in expression_list1:
+        for expression2 in expression_list2:
+            if len(expression1) == len(expression2):
+                pairs.append((expression1, expression2))
+    return pairs

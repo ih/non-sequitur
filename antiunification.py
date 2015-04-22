@@ -30,15 +30,15 @@ def find_best(target_function, possible_functions):
         'applied_in_other': [],
         'size_difference': 0
     }
-    target_function_subexpressions = generate_subexpressions(
+    target_function_subexpressions = language.generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
     target_function_size = language.size(target_function)
     for other_function in possible_functions:
-        function_subexpressions = generate_subexpressions(
+        function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
         other_function_size = language.size(other_function)
         total_size = target_function_size + other_function_size
-        subexpression_pairs = generate_possible_pairs(
+        subexpression_pairs = language.generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
             'new_parameters': [],
@@ -175,62 +175,3 @@ def reduce_parameters(parameters, abstract_expression):
     # the same variable
     # e.g. {x: (4, 2), y: (4, 2)} => {x: (4, 2)}
     return parameters, abstract_expression
-
-# make the following private to module or add to language?
-
-
-def generate_subexpressions(expression, minimum_length):
-    """ Produce all unique* subarrays of length minimum_length or greater
-    e.g. for [[1, 2, 3], 5, [7, 8]] w/ minimum_length 2
-    we'd get [[[1,2,3], 5], [5, [7. 8]], [1, 2], [2, 3], [7, 8],
-    [[1,2,3], 5, [7, 8]], [1, 2, 3]]
-
-    We use unique subexpressions so we can find and replace when applying new
-    abstractions.  This works because we look for antiunifications between a
-    function and itself.
-    """
-    subexpressions = []
-    possible_lengths = sorted(find_term_lengths(expression, minimum_length))
-    for length in possible_lengths:
-        subexpressions.extend(
-            generate_subexpressions_of_length(expression, length))
-    return subexpressions
-
-
-def find_term_lengths(expression, minimum_length):
-    expression_queue = collections.deque([expression])
-    # TODO make lengths a set
-    lengths = []
-    while len(expression_queue) > 0:
-        current_expression = expression_queue.popleft()
-        if len(current_expression) >= minimum_length:
-            lengths.append(len(current_expression))
-        for term in current_expression:
-            if type(term) is list:
-                expression_queue.append(term)
-    return sorted(list(set(lengths)))
-
-
-def generate_subexpressions_of_length(expression, length):
-    expression_queue = collections.deque([expression])
-    # TODO make subexpressions a set
-    subexpressions = []
-    while len(expression_queue) > 0:
-        current_expression = expression_queue.popleft()
-        if len(current_expression) >= length:
-            for i in range(0, len(current_expression) - length + 1):
-                subexpressions.append(current_expression[i:length+i])
-        for term in current_expression:
-            if type(term) is list:
-                expression_queue.append(term)
-    return subexpressions
-
-
-def generate_possible_pairs(expression_list1, expression_list2):
-    # TODO make pairs a set
-    pairs = []
-    for expression1 in expression_list1:
-        for expression2 in expression_list2:
-            if len(expression1) == len(expression2):
-                pairs.append((expression1, expression2))
-    return pairs
