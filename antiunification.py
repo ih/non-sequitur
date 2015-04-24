@@ -1,5 +1,6 @@
 import collections
 import language
+import utility
 # expressions
 APPLICATION_PLACEHOLDER = '*'
 MINIMUM_SUBEXPRESSION_LENGTH = 4
@@ -38,7 +39,7 @@ def find_best(target_function, possible_functions):
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
         other_function_size = language.size(other_function)
         total_size = target_function_size + other_function_size
-        subexpression_pairs = language.generate_possible_pairs(
+        subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
             'new_parameters': [],
@@ -175,3 +176,21 @@ def reduce_parameters(parameters, abstract_expression):
     # the same variable
     # e.g. {x: (4, 2), y: (4, 2)} => {x: (4, 2)}
     return parameters, abstract_expression
+
+
+# this is in antiunification instead of language because we only look
+# at pairs for antiunification (same length and unique)
+def generate_possible_pairs(expression_list1, expression_list2):
+    # use a dict for filtering duplicates
+    pairs = {}
+    for expression1 in expression_list1:
+        for expression2 in expression_list2:
+            if len(expression1) == len(expression2):
+                possible_pair = (
+                    utility.list2tuple(expression1),
+                    utility.list2tuple(expression2))
+                reverse_pair = (possible_pair[1], possible_pair[0])
+                if possible_pair not in pairs and reverse_pair not in pairs:
+                    pairs[possible_pair] = True
+    return [(utility.tuple2list(pair[0]), utility.tuple2list(pair[1])) for
+            pair in pairs]

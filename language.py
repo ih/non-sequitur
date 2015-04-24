@@ -120,13 +120,3 @@ def generate_subexpressions_of_length(expression, length):
             if type(term) is list:
                 expression_queue.append(term)
     return subexpressions
-
-
-def generate_possible_pairs(expression_list1, expression_list2):
-    # TODO make pairs a set
-    pairs = []
-    for expression1 in expression_list1:
-        for expression2 in expression_list2:
-            if len(expression1) == len(expression2):
-                pairs.append((expression1, expression2))
-    return pairs

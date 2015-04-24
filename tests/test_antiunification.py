@@ -22,3 +22,29 @@ class TestAntiunification(unittest.TestCase):
         self.assertEquals(
             parameters['expression2_bindings'],
             {variable1: 3, variable2: '*'})
+
+    def test_antiunify_self(self):
+        expression = ['+', ['-', 3, 4], 2]
+        parameters, abstract_expression = antiunification.antiunify(
+            expression, expression)
+        self.assertEquals(
+            parameters,
+            {
+                'expression1_bindings': {},
+                'variables': [],
+                'expression2_bindings': {}
+            }
+        )
+        self.assertEquals(abstract_expression, expression)
+
+    def test_generate_possible_pairs_self(self):
+        test_expression = [[1, 2], [1, 2, [4, 5]], [7, 8], [1, 2]]
+        possible_pairs = antiunification.generate_possible_pairs(
+            test_expression, test_expression)
+        correct_possible_pairs = [
+            ([1, 2, [4, 5]], [1, 2, [4, 5]]),
+            ([1, 2], [1, 2]),
+            ([7, 8], [7, 8]),
+            ([1, 2], [7, 8])
+        ]
+        self.assertEqual(possible_pairs, correct_possible_pairs)
