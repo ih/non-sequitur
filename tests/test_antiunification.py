@@ -48,3 +48,15 @@ class TestAntiunification(unittest.TestCase):
             ([1, 2], [7, 8])
         ]
         self.assertEqual(possible_pairs, correct_possible_pairs)
+
+    def test_apply_abstract_expression(self):
+        test_expression = [[1, 2], [1, 2, [1, 2]], [7, 8], [1, 2]]
+        sub_expression = [1, 2]
+        variable = language.make_variable()
+        variables = [variable]
+        bindings = {variable: 2}
+        applied_expression = antiunification.apply_abstract_expression(
+            test_expression, sub_expression, variables, bindings)
+        correct_applied_expression = [
+            [['?', 2]], [['?', 2], [['?', 2]]], [7, 8], [['?', 2]]]
+        self.assertEqual(applied_expression, correct_applied_expression)

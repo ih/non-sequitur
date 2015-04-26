@@ -81,6 +81,9 @@ def find_best(target_function, possible_functions):
 
 def apply_abstract_expression(expression, subexpression, variables, bindings):
     """
+    replace subexpression in expression with a call to an unknown function
+    pass the arguments based on bindings to the function call
+
     it'd be more efficient if there was a reference to the position of the
     subexpression in function instead of searching.  also by relying on search
     we need to enforce uniqueness of subexpressions when generating them
@@ -95,9 +98,9 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
         [(expression, applied_expression)])
 
     while len(subexpression_queue) > 0:
-        current_subexpression, current_applied = subexpression_queue
+        current_subexpression, current_applied = subexpression_queue.popleft()
         start_index = 0
-        while start_index < (len(current_subexpression)-len(subexpression))+1:
+        while start_index <= (len(current_subexpression)-len(subexpression))+1:
             current_segment = current_subexpression[
                 start_index: start_index+len(subexpression)]
             if (current_segment == subexpression):
@@ -108,7 +111,7 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
                 start_index += 1
                 if type(term) is list:
                     current_applied.append([])
-                    subexpression_queue.append(term, current_applied[-1])
+                    subexpression_queue.append((term, current_applied[-1]))
                 else:
                     current_applied.append(term)
 
