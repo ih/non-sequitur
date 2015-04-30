@@ -3,7 +3,7 @@ import language
 import utility
 # expressions
 APPLICATION_PLACEHOLDER = '*'
-MINIMUM_SUBEXPRESSION_LENGTH = 4
+MINIMUM_SUBEXPRESSION_LENGTH = 2
 
 
 def find_best(target_function, possible_functions):
@@ -33,11 +33,11 @@ def find_best(target_function, possible_functions):
     }
     target_function_subexpressions = language.generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-    target_function_size = language.size(target_function)
+    target_function_size = language.size(target_function.body)
     for other_function in possible_functions:
         function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-        other_function_size = language.size(other_function)
+        other_function_size = language.size(other_function.body)
         total_size = target_function_size + other_function_size
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
@@ -67,11 +67,13 @@ def find_best(target_function, possible_functions):
             new_size_difference = total_size - new_total_size
             if (new_size_difference >
                     best_function_antiunification['size_difference']):
+
                 best_function_antiunification = {
                     'new_parameters': parameters,
                     'new_body': abstract_expression,
                     'applied_in_target': applied_in_target,
-                    'applied_in_other': applied_in_other
+                    'applied_in_other': applied_in_other,
+                    'size_difference': new_size_difference
                 }
         if (best_function_antiunification['size_difference'] >
                 best_overall_antiunification['size_difference']):
@@ -100,7 +102,7 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
     while len(subexpression_queue) > 0:
         current_subexpression, current_applied = subexpression_queue.popleft()
         start_index = 0
-        while start_index <= (len(current_subexpression)-len(subexpression))+1:
+        while start_index < len(current_subexpression):
             current_segment = current_subexpression[
                 start_index: start_index+len(subexpression)]
             if (current_segment == subexpression):
@@ -114,7 +116,6 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
                     subexpression_queue.append((term, current_applied[-1]))
                 else:
                     current_applied.append(term)
-
     return applied_expression
 
 

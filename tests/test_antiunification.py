@@ -60,3 +60,41 @@ class TestAntiunification(unittest.TestCase):
         correct_applied_expression = [
             [['?', 2]], [['?', 2], [['?', 2]]], [7, 8], [['?', 2]]]
         self.assertEqual(applied_expression, correct_applied_expression)
+
+    def test_apply_abstract_expression2(self):
+        test_expression = [
+            [1, 2], [1, 2, [1, 2]], [7, 8, 9], [7, 8, 9], [1, 2]]
+        sub_expression = [7, 8, 9]
+        variable1 = language.make_variable()
+        variable2 = language.make_variable()
+        variable3 = language.make_variable()
+        variables = [variable1, variable2, variable3]
+        bindings = {
+            variable1: 7,
+            variable2: 8,
+            variable3: 9
+        }
+        applied_expression = antiunification.apply_abstract_expression(
+            test_expression, sub_expression, variables, bindings)
+        correct_applied_expression = [
+            [1, 2], [1, 2, [1, 2]], [['?', 7, 8, 9]], [['?', 7, 8, 9]], [1, 2]]
+        self.assertEqual(applied_expression, correct_applied_expression)
+
+    def test_find_best_self(self):
+        test_function = language.Function(
+            parameters=[],
+            body=[[1, 2], [1, 2, [1, 2]], [7, 8, 9], [7, 8, 9], [1, 2]])
+        alternative_function = language.Function(
+            parameters=[],
+            body=['-', ['+', 2, 3, 4], 3])
+        best = antiunification.find_best(test_function, [alternative_function])
+        true_best = {
+            'new_parameters': [],
+            'new_body': [1, 2],
+            'applied_in_target': [
+                [['*']], [['*'], [['*']]], [7, 8, 9], [7, 8, 9], [['*']]],
+            'applied_in_other': [
+                [['*']], [['*'], [['*']]], [7, 8, 9], [7, 8, 9], [['*']]],
+            'size_difference': 4
+        }
+        self.assertEqual(best, true_best)
