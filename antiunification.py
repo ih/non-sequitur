@@ -2,7 +2,7 @@ import collections
 import language
 import utility
 # expressions
-APPLICATION_PLACEHOLDER = '*'
+APPLICATION_PLACEHOLDER = '?'
 MINIMUM_SUBEXPRESSION_LENGTH = 2
 
 
@@ -24,6 +24,8 @@ def find_best(target_function, possible_functions):
         size_difference: integer
     }
     """
+    # this makes sure we find patterns within the changed function if any exist
+    possible_functions.append(target_function)
     best_overall_antiunification = {
         'new_parameters': [],
         'new_body': [],
@@ -34,6 +36,7 @@ def find_best(target_function, possible_functions):
     target_function_subexpressions = language.generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
     target_function_size = language.size(target_function.body)
+
     for other_function in possible_functions:
         function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
@@ -64,7 +67,14 @@ def find_best(target_function, possible_functions):
                 language.size(applied_in_target) +
                 language.size(applied_in_other) +
                 language.size(abstract_expression))
-            new_size_difference = total_size - new_total_size
+            if target_function != other_function:
+                new_size_difference = total_size - new_total_size
+            else:
+                new_size_difference = (
+                    target_function_size -
+                    (language.size(applied_in_target) +
+                     language.size(abstract_expression)))
+
             if (new_size_difference >
                     best_function_antiunification['size_difference']):
 
@@ -94,7 +104,9 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
     of the subexpression and now we only need to antiunify one
     """
 
-    function_call = ['?'] + [bindings[variable] for variable in variables]
+    function_call = (
+        [APPLICATION_PLACEHOLDER] +
+        [bindings[variable] for variable in variables])
     applied_expression = []
     subexpression_queue = collections.deque(
         [(expression, applied_expression)])

@@ -89,12 +89,16 @@ class TestAntiunification(unittest.TestCase):
             body=['-', ['+', 2, 3, 4], 3])
         best = antiunification.find_best(test_function, [alternative_function])
         true_best = {
-            'new_parameters': [],
+            'new_parameters': {
+                'expression1_bindings': {},
+                'expression2_bindings': {},
+                'variables': []
+            },
             'new_body': [1, 2],
             'applied_in_target': [
-                [['*']], [['*'], [['*']]], [7, 8, 9], [7, 8, 9], [['*']]],
+                [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]],
             'applied_in_other': [
-                [['*']], [['*'], [['*']]], [7, 8, 9], [7, 8, 9], [['*']]],
-            'size_difference': 4
+                [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]],
+            'size_difference': 2
         }
         self.assertEqual(best, true_best)

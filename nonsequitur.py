@@ -31,11 +31,7 @@ def check(function):
         # here applications are
         # {name: function_name, body: body_with_application}
         possible_functions = language.Function.index.values()
-        # important to have the function being checked in the possible
-        # functions, see comment in antiunification.generate_subexpressions for
-        # details
-        if function.name is 'start':
-            possible_functions.append(function)
+
         best_antiunification = antiunification.find_best(
             function, possible_functions)
         if 'applied_in_other' in best_antiunification:
