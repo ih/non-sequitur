@@ -66,7 +66,9 @@ def find_best(target_function, possible_functions):
             new_total_size = (
                 language.size(applied_in_target) +
                 language.size(applied_in_other) +
-                language.size(abstract_expression))
+                language.size(abstract_expression) +
+                len(parameters['variables']))
+
             if target_function != other_function:
                 new_size_difference = total_size - new_total_size
             else:

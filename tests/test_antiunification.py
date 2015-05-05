@@ -102,3 +102,27 @@ class TestAntiunification(unittest.TestCase):
             'size_difference': 2
         }
         self.assertEqual(best, true_best)
+
+    def test_find_best(self):
+        test_function = language.Function(
+            parameters=[],
+            body=[[1, 2, 3], [3, 4, 5, 5, 7, 8, 9]])
+        alternative_function1 = language.Function(
+            parameters=[],
+            body=['-', [3, 4, 5, 6, 7, 8, 9], 3])
+        alternative_function2 = language.Function(
+            parameters=[],
+            body=[1, 2, 3])
+        best = antiunification.find_best(
+            test_function, [alternative_function1, alternative_function2])
+        true_best = {
+            'applied_in_target': [[1, 2, 3], [['?', 5]]],
+            'applied_in_other': ['-', [['?', 6]], 3],
+            'size_difference': 2
+        }
+        self.assertEqual(
+            best['applied_in_target'], true_best['applied_in_target'])
+        self.assertEqual(
+            best['applied_in_other'], true_best['applied_in_other'])
+        self.assertEqual(
+            best['size_difference'], true_best['size_difference'])
