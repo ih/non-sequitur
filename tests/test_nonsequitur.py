@@ -10,6 +10,8 @@ class TestNonSequiturMethods(unittest.TestCase):
             name, '*', ['*', ['*', 2, 3], '*'])
         self.assertEqual(after_application, [name, [name, 2, 3], name])
 
+    # def test_check(self):
+
 
 if __name__ == '__main__':
     unittest.main()

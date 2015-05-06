@@ -24,13 +24,11 @@ def find_best(target_function, possible_functions):
         size_difference: integer
     }
     """
-    # this makes sure we find patterns within the changed function if any exist
-    possible_functions.append(target_function)
     best_overall_antiunification = {
         'new_parameters': [],
         'new_body': [],
-        'applied_in_target': [],
-        'applied_in_other': [],
+        'applied_in_target': {'name': None, 'body': []},
+        'applied_in_other': {'name': None, 'body': []},
         'size_difference': 0
     }
     target_function_subexpressions = language.generate_subexpressions(
@@ -47,25 +45,25 @@ def find_best(target_function, possible_functions):
         best_function_antiunification = {
             'new_parameters': [],
             'new_body': [],
-            'applied_in_target': [],
-            'applied_in_other': [],
+            'applied_in_target': {'name': None, 'body': []},
+            'applied_in_other': {'name': None, 'body': []},
             'size_difference': 0
         }
         # this can probably be parallelized
         for target_subexpression, other_subexpression in subexpression_pairs:
             parameters, abstract_expression = antiunify(
                 target_subexpression, other_subexpression)
-            applied_in_target = apply_abstract_expression(
+            applied_in_target_body = apply_abstract_expression(
                 target_function.body, target_subexpression,
                 parameters['variables'],
                 parameters['expression1_bindings'])
-            applied_in_other = apply_abstract_expression(
+            applied_in_other_body = apply_abstract_expression(
                 other_function.body, other_subexpression,
                 parameters['variables'],
                 parameters['expression2_bindings'])
             new_total_size = (
-                language.size(applied_in_target) +
-                language.size(applied_in_other) +
+                language.size(applied_in_target_body) +
+                language.size(applied_in_other_body) +
                 language.size(abstract_expression) +
                 len(parameters['variables']))
 
@@ -74,7 +72,7 @@ def find_best(target_function, possible_functions):
             else:
                 new_size_difference = (
                     target_function_size -
-                    (language.size(applied_in_target) +
+                    (language.size(applied_in_target_body) +
                      language.size(abstract_expression)))
 
             if (new_size_difference >
@@ -83,8 +81,12 @@ def find_best(target_function, possible_functions):
                 best_function_antiunification = {
                     'new_parameters': parameters,
                     'new_body': abstract_expression,
-                    'applied_in_target': applied_in_target,
-                    'applied_in_other': applied_in_other,
+                    'applied_in_target': {
+                        'name': target_function.name,
+                        'body': applied_in_target_body},
+                    'applied_in_other': {
+                        'name': other_function.name,
+                        'body': applied_in_other_body},
                     'size_difference': new_size_difference
                 }
         if (best_function_antiunification['size_difference'] >

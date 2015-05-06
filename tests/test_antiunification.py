@@ -87,7 +87,8 @@ class TestAntiunification(unittest.TestCase):
         alternative_function = language.Function(
             parameters=[],
             body=['-', ['+', 2, 3, 4], 3])
-        best = antiunification.find_best(test_function, [alternative_function])
+        best = antiunification.find_best(
+            test_function, [test_function, alternative_function])
         true_best = {
             'new_parameters': {
                 'expression1_bindings': {},
@@ -95,10 +96,14 @@ class TestAntiunification(unittest.TestCase):
                 'variables': []
             },
             'new_body': [1, 2],
-            'applied_in_target': [
-                [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]],
-            'applied_in_other': [
-                [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]],
+            'applied_in_target': {
+                'name': test_function.name,
+                'body': [
+                    [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]]},
+            'applied_in_other': {
+                'name': test_function.name,
+                'body': [
+                    [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]]},
             'size_difference': 2
         }
         self.assertEqual(best, true_best)
@@ -116,13 +121,15 @@ class TestAntiunification(unittest.TestCase):
         best = antiunification.find_best(
             test_function, [alternative_function1, alternative_function2])
         true_best = {
-            'applied_in_target': [[1, 2, 3], [['?', 5]]],
-            'applied_in_other': ['-', [['?', 6]], 3],
+            'applied_in_target': {'body': [[1, 2, 3], [['?', 5]]]},
+            'applied_in_other': {'body': ['-', [['?', 6]], 3]},
             'size_difference': 2
         }
         self.assertEqual(
-            best['applied_in_target'], true_best['applied_in_target'])
+            best['applied_in_target']['body'],
+            true_best['applied_in_target']['body'])
         self.assertEqual(
-            best['applied_in_other'], true_best['applied_in_other'])
+            best['applied_in_other']['body'],
+            true_best['applied_in_other']['body'])
         self.assertEqual(
             best['size_difference'], true_best['size_difference'])

@@ -21,8 +21,10 @@ def check(function):
     First try to apply an existing pattern, then try to create a new pattern,
     then remove any under-utilized patterns."""
     # apply existing functions
+    other_functions = language.Function.index.values()
+    other_functions.remove(function)
     best_unification = unification.find_best(
-        function, language.Function.index.values())
+        function, other_functions)
     if best_unification['size_difference'] > 0:
         function.body = best_unification['new_body']
         check(function)
@@ -31,12 +33,13 @@ def check(function):
         # here applications are
         # {name: function_name, body: body_with_application}
         possible_functions = language.Function.index.values()
-
+        # since possible_functions includes function we always check for
+        # patterns within the function itself
         best_antiunification = antiunification.find_best(
             function, possible_functions)
         if 'applied_in_other' in best_antiunification:
             other_function = language.Function.index[
-                antiunification['applied_in_other']['name']]
+                best_antiunification['applied_in_other']['name']]
         if best_antiunification['size_difference'] > 0:
             new_function = language.Function(
                 parameters=best_antiunification['new_parameters'],
@@ -55,8 +58,11 @@ def check(function):
 
 
 def main(data):
+    language.Function.reset_index()
     data_program = language.Function(name=language.Symbol('start'))
     for character in data:
+        import ipdb
+        ipdb.set_trace()
         data_program.body.append(character)
         check(data_program)
     print data_program

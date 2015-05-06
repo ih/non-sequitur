@@ -43,10 +43,14 @@ class Function(object):
     def reset_index(cls):
         cls.index = {}
 
-    def __init__(self, name=None, parameters=[], body=[]):
+    def __init__(self, name=None, parameters=None, body=None):
         # can't set default argument to Symbol('F') since it is only run once
         if name is None:
             name = Symbol('F')
+        if parameters is None:
+            parameters = []
+        if body is None:
+            body = []
         self.name = name
         self.parameters = parameters
         self.body = body
