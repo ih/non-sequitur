@@ -14,13 +14,16 @@ def size(expression):
 class Symbol(object):
     prefix_counter = {}
 
-    def __init__(self, prefix='S'):
-        if prefix in Symbol.prefix_counter:
-            self.value = prefix + str(Symbol.prefix_counter[prefix])
-            Symbol.prefix_counter[prefix] += 1
+    def __init__(self, prefix='S', count=None):
+        if count is not None:
+            self.value = prefix + str(count)
         else:
-            self.value = prefix + '0'
-            Symbol.prefix_counter[prefix] = 1
+            if prefix in Symbol.prefix_counter:
+                self.value = prefix + str(Symbol.prefix_counter[prefix])
+                Symbol.prefix_counter[prefix] += 1
+            else:
+                self.value = prefix + '0'
+                Symbol.prefix_counter[prefix] = 1
 
     @classmethod
     def reset_counter(cls):
@@ -42,6 +45,11 @@ class Function(object):
     @classmethod
     def reset_index(cls):
         cls.index = {}
+
+    @classmethod
+    def print_all(cls):
+        for function in cls.index.values():
+            print function
 
     def __init__(self, name=None, parameters=None, body=None):
         # can't set default argument to Symbol('F') since it is only run once

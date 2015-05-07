@@ -25,7 +25,9 @@ def find_best(target_function, possible_functions):
     }
     """
     best_overall_antiunification = {
-        'new_parameters': [],
+        'new_parameters': {
+            'variables': [], 'expression1_bindings': {},
+            'expression2_bindings': {}},
         'new_body': [],
         'applied_in_target': {'name': None, 'body': []},
         'applied_in_other': {'name': None, 'body': []},
@@ -43,7 +45,9 @@ def find_best(target_function, possible_functions):
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
-            'new_parameters': [],
+            'new_parameters': {
+                'variables': [], 'expression1_bindings': {},
+                'expression2_bindings': {}},
             'new_body': [],
             'applied_in_target': {'name': None, 'body': []},
             'applied_in_other': {'name': None, 'body': []},

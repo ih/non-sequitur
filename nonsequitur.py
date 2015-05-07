@@ -37,19 +37,18 @@ def check(function):
         # patterns within the function itself
         best_antiunification = antiunification.find_best(
             function, possible_functions)
-        if 'applied_in_other' in best_antiunification:
+        if best_antiunification['size_difference'] > 0:
             other_function = language.Function.index[
                 best_antiunification['applied_in_other']['name']]
-        if best_antiunification['size_difference'] > 0:
             new_function = language.Function(
-                parameters=best_antiunification['new_parameters'],
+                parameters=best_antiunification['new_parameters']['variables'],
                 body=best_antiunification['new_body'])
             application_this_body = substitute(
                 new_function.name, antiunification.APPLICATION_PLACEHOLDER,
-                best_unification['applied_in_target']['body'])
+                best_antiunification['applied_in_target']['body'])
             application_other_body = substitute(
                 new_function.name, antiunification.APPLICATION_PLACEHOLDER,
-                best_unification['application_other']['body'])
+                best_antiunification['applied_in_other']['body'])
             function.body = application_this_body
             check(function)
             other_function.body = application_other_body
@@ -61,11 +60,9 @@ def main(data):
     language.Function.reset_index()
     data_program = language.Function(name=language.Symbol('start'))
     for character in data:
-        import ipdb
-        ipdb.set_trace()
         data_program.body.append(character)
         check(data_program)
-    print data_program
+    return data_program
 
 
 test_data = 'abcdbcabcd'
