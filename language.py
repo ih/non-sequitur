@@ -2,6 +2,7 @@ import collections
 import utility
 
 VARIABLE_PREFIX = 'V'
+FUNCTION_PREFIX = 'F'
 
 
 def size(expression):
@@ -54,7 +55,7 @@ class Function(object):
     def __init__(self, name=None, parameters=None, body=None):
         # can't set default argument to Symbol('F') since it is only run once
         if name is None:
-            name = Symbol('F')
+            name = Symbol(FUNCTION_PREFIX)
         if parameters is None:
             parameters = []
         if body is None:
@@ -85,6 +86,10 @@ def is_variable(expression):
     return (isinstance(expression, Symbol) and
             expression.value.startswith(VARIABLE_PREFIX))
 
+
+def is_function(expression):
+    return (isinstance(expression, Symbol) and
+            expression.value.startswith(FUNCTION_PREFIX))
 
 def generate_subexpressions(expression, minimum_length):
     """ Produce all unique* subarrays of length minimum_length or greater
@@ -132,3 +137,11 @@ def generate_subexpressions_of_length(expression, length):
             if type(term) is list:
                 expression_queue.append(term)
     return subexpressions
+
+
+def get_functions_used(expression):
+    functions = []
+    for term in utility.traverse(expression):
+        if is_function(term):
+            functions.append(term)
+    return functions

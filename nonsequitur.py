@@ -54,12 +54,24 @@ def check(function):
             other_function.body = application_other_body
             check(other_function)
     # remove any underutilized functions
+    # only need to check functions used in the body of new_function?
+    # only do if there was an antiunification?
+    applied_functions = language.get_functions_used(new_function.body)
+    underutilized_functions = [
+        applied_function for applied_function in applied_functions
+        if is_underutilized(applied_function)]
+    for underutilized_function in underutilized_functions:
+        inline_function(underutilized_function)
+
+
+
 
 
 def main(data):
     language.Function.reset_index()
     data_program = language.Function(name=language.Symbol('start'))
     for character in data:
+        print 'processing character %s' % character
         data_program.body.append(character)
         check(data_program)
     return data_program

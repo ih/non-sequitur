@@ -59,3 +59,11 @@ class TestLanguage(unittest.TestCase):
         self.assertSetEqual(
             set(utility.list2tuple(subexpressions)),
             set(utility.list2tuple(correct_subexpressions)))
+
+    def test_get_functions_used(self):
+        function1 = language.Function()
+        function2 = language.Function()
+        test_expression = [[function1.name, 3, 4], [5, [2, [function2.name]]]]
+        self.assertEqual(
+            language.get_functions_used(test_expression),
+            [function1.name, function2.name])

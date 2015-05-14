@@ -94,6 +94,10 @@ eventually we should try to create functions where variables capture uncertainty
 [1 1 x y z 1]
 ******** function utility
 after unifications and antiunifications check that all functions are used in more than one place or give compression
+
+********* under what scenario can a function application disappear?
+if it becomes part of an abstraction the places where the abstraction is applied become places where the function application disappear
+
 ****** output the final program
 ***** data structures
 ****** expressions
@@ -129,3 +133,35 @@ we'll keep data as a list of tokens for now
 ***** abacdcefe or even abacbcdbdebe
 no duplicate bigrams, but
 f(x,y) = xyx is a pattern
+**** results
+***** peas porridge
+****** input
+"'pease porridge hot,\npease porridge cold,\npease porridge in the pot,\nnine days old.\n\nsome like it hot,\nsome like it cold,\nsome like it in the pot,\nnine days old."
+****** output
+[F23 [] ['o', 'l', 'd']]
+[F22 [] ['e', ' ']]
+[F21 [] [',', '\n', ['F20']]]
+[F20 [] [['F19'], ['F22']]]
+[F27 [] [['F26'], ['F22'], 'l']]
+[F26 [] ['s', 'o', 'm']]
+[F25 [] [['F24'], ',', '\n']]
+[F24 [] ['o', 't']]
+[F29 [] [['F28'], ['F22'], 'i']]
+[F28 [] [['F27'], 'i', 'k']]
+[start3 [] ["'", ['F20'], 'h', ['F24'], ['F21'], 'c', ['F23'], ['F21'], ['F39'], '\n', '\n', ['F30'], 'h', ['F25'], ['F30'], 'c', ['F23'], ',', '\n', ['F30'], ['F39']]]
+[F30 [] [['F29'], 't', ' ']]
+[F31 [] ['i', 'n']]
+[F18 [] [['F17'], 'r', 'i']]
+[F33 [] [['F32'], 'h', ['F22']]]
+[F34 [] [['F33'], 'p', ['F25']]]
+[F35 [] [['F34'], 'n', ['F31']]]
+[F36 [] [['F35'], ['F22'], 'd']]
+[F37 [] [['F36'], 'a', 'y']]
+[F38 [] [['F37'], 's', ' ']]
+[F39 [] [['F38'], ['F23'], '.']]
+[F16 [] [['F15'], ' ', 'p']]
+[F17 [] [['F16'], 'o', 'r']]
+[F14 [] ['p', 'e', 'a']]
+[F15 [] [['F14'], 's', 'e']]
+[F32 [] [['F31'], ' ', 't']]
+[F19 [] [['F18'], 'd', 'g']]
