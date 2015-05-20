@@ -13,7 +13,8 @@ def find_best(target_function, possible_functions):
     }
     """
     best_unification = {
-        'bindings': {}, 'new_body': [], 'size_difference': 0}
+        'bindings': {}, 'new_body': [], 'size_difference': 0,
+        'applied_function': None}
     for function in possible_functions:
         # try to match the body of function in different places of target_
         # function body
@@ -36,7 +37,8 @@ def find_best(target_function, possible_functions):
                     best_unification = {
                         'bindings': bindings,
                         'new_body': new_target_body,
-                        'size_difference': size_difference
+                        'size_difference': size_difference,
+                        'applied_function': function
                     }
     return best_unification
 

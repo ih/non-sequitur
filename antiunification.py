@@ -31,6 +31,7 @@ def find_best(target_function, possible_functions):
         'new_body': [],
         'applied_in_target': {'name': None, 'body': []},
         'applied_in_other': {'name': None, 'body': []},
+        'application_count': 0,
         'size_difference': 0
     }
     target_function_subexpressions = language.generate_subexpressions(
@@ -51,17 +52,18 @@ def find_best(target_function, possible_functions):
             'new_body': [],
             'applied_in_target': {'name': None, 'body': []},
             'applied_in_other': {'name': None, 'body': []},
+            'application_count': 0,
             'size_difference': 0
         }
         # this can probably be parallelized
         for target_subexpression, other_subexpression in subexpression_pairs:
             parameters, abstract_expression = antiunify(
                 target_subexpression, other_subexpression)
-            applied_in_target_body = apply_abstract_expression(
+            applied_in_target_body, target_count = apply_abstract_expression(
                 target_function.body, target_subexpression,
                 parameters['variables'],
                 parameters['expression1_bindings'])
-            applied_in_other_body = apply_abstract_expression(
+            applied_in_other_body, other_count = apply_abstract_expression(
                 other_function.body, other_subexpression,
                 parameters['variables'],
                 parameters['expression2_bindings'])
@@ -91,6 +93,7 @@ def find_best(target_function, possible_functions):
                     'applied_in_other': {
                         'name': other_function.name,
                         'body': applied_in_other_body},
+                    'application_count': target_count+other_count,
                     'size_difference': new_size_difference
                 }
         if (best_function_antiunification['size_difference'] >
@@ -111,7 +114,7 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
     actually maybe this is more efficient since we replace multiple
     of the subexpression and now we only need to antiunify one
     """
-
+    application_count = 0
     function_call = (
         [APPLICATION_PLACEHOLDER] +
         [bindings[variable] for variable in variables])
@@ -126,6 +129,7 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
             current_segment = current_subexpression[
                 start_index: start_index+len(subexpression)]
             if (current_segment == subexpression):
+                application_count += 1
                 current_applied.append(function_call)
                 start_index += len(subexpression)
             else:
@@ -136,7 +140,7 @@ def apply_abstract_expression(expression, subexpression, variables, bindings):
                     subexpression_queue.append((term, current_applied[-1]))
                 else:
                     current_applied.append(term)
-    return applied_expression
+    return applied_expression, application_count
 
 
 def antiunify(expression1, expression2):

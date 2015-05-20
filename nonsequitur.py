@@ -27,6 +27,8 @@ def check(function):
         function, other_functions)
     if best_unification['size_difference'] > 0:
         function.body = best_unification['new_body']
+        # TODO find a better way to manage application_count
+        best_unification['applied_function'].application_count += 1
         check(function)
     else:
         # create a new function if it helps
@@ -43,6 +45,8 @@ def check(function):
             new_function = language.Function(
                 parameters=best_antiunification['new_parameters']['variables'],
                 body=best_antiunification['new_body'])
+            new_function.application_count = (
+                best_antiunification['application_count'])
             application_this_body = substitute(
                 new_function.name, antiunification.APPLICATION_PLACEHOLDER,
                 best_antiunification['applied_in_target']['body'])
@@ -56,15 +60,12 @@ def check(function):
     # remove any underutilized functions
     # only need to check functions used in the body of new_function?
     # only do if there was an antiunification?
-    applied_functions = language.get_functions_used(new_function.body)
-    underutilized_functions = [
-        applied_function for applied_function in applied_functions
-        if is_underutilized(applied_function)]
-    for underutilized_function in underutilized_functions:
-        inline_function(underutilized_function)
-
-
-
+    # applied_functions = language.get_functions_used(new_function.body)
+    # underutilized_functions = [
+    #     applied_function for applied_function in applied_functions
+    #     if is_underutilized(applied_function)]
+    # for underutilized_function in underutilized_functions:
+    #     inline_function(underutilized_function)
 
 
 def main(data):

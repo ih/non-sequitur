@@ -86,5 +86,6 @@ class TestUnificationMethods(unittest.TestCase):
             {
                 'bindings': {},
                 'new_body': [[good_function.name], 2, 2, 2],
-                'size_difference': 3
+                'size_difference': 3,
+                'applied_function': good_function
             })

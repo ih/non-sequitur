@@ -91,6 +91,7 @@ def is_function(expression):
     return (isinstance(expression, Symbol) and
             expression.value.startswith(FUNCTION_PREFIX))
 
+
 def generate_subexpressions(expression, minimum_length):
     """ Produce all unique* subarrays of length minimum_length or greater
     e.g. for [[1, 2, 3], 5, [7, 8]] w/ minimum_length 2
