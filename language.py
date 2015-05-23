@@ -52,6 +52,27 @@ class Function(object):
         for function in cls.index.values():
             print function
 
+    @classmethod
+    def inline(cls, inline_function):
+        if is_function_name(inline_function):
+            inline_function = cls.index[inline_function]
+        # optimize by keeping track of where applications are
+        functions_with_applications = cls.find_applications(inline_function)
+        assert len(functions_with_applications) == 1
+        for function_with_application in functions_with_applications:
+            function_with_application.body = substitute(
+                is_application, inline_function.body,
+                function_with_application.body)
+
+    @classmethod
+    def find_applications(cls, function):
+        functions_with_applications = []
+        for other_function in cls.index.values():
+            functions_used = get_functions_used(other_function.body)
+            if function.name in functions_used:
+                functions_with_applications.append(other_function)
+        return functions_with_applications
+
     def __init__(self, name=None, parameters=None, body=None):
         # can't set default argument to Symbol('F') since it is only run once
         if name is None:
@@ -75,7 +96,9 @@ class Function(object):
                 string_body.append([str(subterm) for subterm in term])
             else:
                 string_body.append(str(term))
-        return '[%s %s %s]' % (str(self.name), string_parameters, string_body)
+        return '[%s %s %s] %s' % (
+            str(self.name), string_parameters, string_body,
+            self.application_count)
 
 
 def make_variable():
@@ -87,7 +110,7 @@ def is_variable(expression):
             expression.value.startswith(VARIABLE_PREFIX))
 
 
-def is_function(expression):
+def is_function_name(expression):
     return (isinstance(expression, Symbol) and
             expression.value.startswith(FUNCTION_PREFIX))
 
@@ -141,8 +164,31 @@ def generate_subexpressions_of_length(expression, length):
 
 
 def get_functions_used(expression):
-    functions = []
+    """
+    Get the functions used in an expression as well as how many times they are
+    used.
+    """
+    functions = {}
     for term in utility.traverse(expression):
-        if is_function(term):
-            functions.append(term)
+        if is_function_name(term):
+            if term not in functions:
+                functions[term] = 0
+            functions[term] += 1
     return functions
+
+
+def substitute(replacement_check, replacement, expression):
+    substitution = []
+    for term in expression:
+        if replacement_check(term):
+            substitution.extend(replacement)
+        elif type(term) is list:
+            substitution.append(
+                substitute(replacement_check, replacement, term))
+        else:
+            substitution.append(term)
+    return substitution
+
+
+def is_application(term):
+    return type(term) is list and is_function_name(term[0])

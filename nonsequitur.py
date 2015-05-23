@@ -57,15 +57,44 @@ def check(function):
             check(function)
             other_function.body = application_other_body
             check(other_function)
-    # remove any underutilized functions
-    # only need to check functions used in the body of new_function?
-    # only do if there was an antiunification?
-    # applied_functions = language.get_functions_used(new_function.body)
-    # underutilized_functions = [
-    #     applied_function for applied_function in applied_functions
-    #     if is_underutilized(applied_function)]
-    # for underutilized_function in underutilized_functions:
-    #     inline_function(underutilized_function)
+            # remove any underutilized functions
+            # only need to check functions used in the body of new_function?
+            # only do if there was an antiunification?
+            applied_function_counts = language.get_functions_used(
+                new_function.body)
+            decrement_application_counts(applied_function_counts, new_function)
+            applied_functions = applied_function_counts.keys()
+            underutilized_function_names = [
+                applied_function_name for applied_function_name
+                in applied_functions
+                if is_underutilized(applied_function_name)]
+            for underutilized_function_name in underutilized_function_names:
+                import ipdb
+                ipdb.set_trace()
+                language.Function.inline(underutilized_function_name)
+                del language.Function.index[underutilized_function_name]
+
+
+# TODO find a better place to put this
+def decrement_application_counts(application_counts, new_function):
+    """
+    The number of applications for a function can decrease if they are in the
+    of a newly created function.  This function is called after antiunification
+    to decrement function application counts if appropriate
+    """
+    for function_name, application_count in application_counts.iteritems():
+        # each place we applied the new function we reduced the number of calls
+        # function_name by application_count, but we still have the calls in
+        # the new_function body so that's where the -1 of application_count - 1
+        # comes from
+        applications_removed = (
+            (new_function.application_count * application_count) - 1)
+        language.Function.index[
+            function_name].application_count -= applications_removed
+
+
+def is_underutilized(function_name):
+    return language.Function.index[function_name].application_count < 2
 
 
 def main(data):
@@ -79,3 +108,12 @@ def main(data):
 
 
 test_data = 'abcdbcabcd'
+peas = """pease porridge hot,
+pease porridge cold,
+pease porridge in the pot,
+nine days old.
+
+some like it hot,
+some like it cold,
+some like it in the pot,
+nine days old."""

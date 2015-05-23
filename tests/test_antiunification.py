@@ -106,7 +106,7 @@ class TestAntiunification(unittest.TestCase):
                 'name': test_function.name,
                 'body': [
                     [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]]},
-            'application_count': 8,
+            'application_count': 4,
             'size_difference': 2
         }
         self.assertEqual(best, true_best)

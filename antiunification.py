@@ -75,15 +75,16 @@ def find_best(target_function, possible_functions):
 
             if target_function != other_function:
                 new_size_difference = total_size - new_total_size
+                application_count = target_count+other_count
             else:
                 new_size_difference = (
                     target_function_size -
                     (language.size(applied_in_target_body) +
                      language.size(abstract_expression)))
+                application_count = target_count
 
             if (new_size_difference >
                     best_function_antiunification['size_difference']):
-
                 best_function_antiunification = {
                     'new_parameters': parameters,
                     'new_body': abstract_expression,
@@ -93,7 +94,7 @@ def find_best(target_function, possible_functions):
                     'applied_in_other': {
                         'name': other_function.name,
                         'body': applied_in_other_body},
-                    'application_count': target_count+other_count,
+                    'application_count': application_count,
                     'size_difference': new_size_difference
                 }
         if (best_function_antiunification['size_difference'] >

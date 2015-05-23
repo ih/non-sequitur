@@ -63,7 +63,11 @@ class TestLanguage(unittest.TestCase):
     def test_get_functions_used(self):
         function1 = language.Function()
         function2 = language.Function()
-        test_expression = [[function1.name, 3, 4], [5, [2, [function2.name]]]]
+        test_expression = [
+            [function1.name, 3, 4], [function1.name, [2, [function2.name]]]]
         self.assertEqual(
             language.get_functions_used(test_expression),
-            [function1.name, function2.name])
+            {
+                function1.name: 2,
+                function2.name: 1
+            })
