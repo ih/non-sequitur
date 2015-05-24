@@ -69,8 +69,6 @@ def check(function):
                 in applied_functions
                 if is_underutilized(applied_function_name)]
             for underutilized_function_name in underutilized_function_names:
-                import ipdb
-                ipdb.set_trace()
                 language.Function.inline(underutilized_function_name)
                 del language.Function.index[underutilized_function_name]
 

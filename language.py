@@ -59,9 +59,12 @@ class Function(object):
         # optimize by keeping track of where applications are
         functions_with_applications = cls.find_applications(inline_function)
         assert len(functions_with_applications) == 1
+
+        def is_inline_application(term):
+            return is_application(term) and term[0] == inline_function.name
         for function_with_application in functions_with_applications:
             function_with_application.body = substitute(
-                is_application, inline_function.body,
+                is_inline_application, inline_function.body,
                 function_with_application.body)
 
     @classmethod
