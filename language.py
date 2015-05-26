@@ -195,3 +195,36 @@ def substitute(replacement_check, replacement, expression):
 
 def is_application(term):
     return type(term) is list and is_function_name(term[0])
+
+
+def evaluate(expression, environment):
+    if is_application(expression):
+        new_environment = bind_variables(expression, environment)
+        return evaluate(Function.index[expression[0]].body, new_environment)
+    elif type(expression) is list:
+        evaluated_expression = []
+        for term in expression:
+            evaluated_term = evaluate(term, environment)
+            if is_application(term):
+                evaluated_expression.extend(evaluated_term)
+            else:
+                evaluated_expression.append(evaluated_term)
+        return evaluated_expression
+    elif is_variable(expression):
+        return environment[expression]
+    else:
+        # primitive case
+        return expression
+
+
+def bind_variables(function_application, environment):
+    if len(function_application) == 1:
+        return environment
+    new_environment = environment.copy()
+    function_name = function_application[0]
+    function_arguments = function_application[1:]
+    evaluated_arguments = [
+        evaluate(argument, environment) for argument in function_arguments]
+    new_environment.update(
+        zip(Function.index[function_name].parameters, evaluated_arguments))
+    return new_environment

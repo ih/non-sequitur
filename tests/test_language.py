@@ -71,3 +71,26 @@ class TestLanguage(unittest.TestCase):
                 function1.name: 2,
                 function2.name: 1
             })
+
+    def test_evaluation_single_function(self):
+        parameter1 = language.make_variable()
+        parameter2 = language.make_variable()
+        function = language.Function(
+            parameters=[parameter1, parameter2],
+            body=[1, 2, parameter1, parameter2, 3])
+        expression = [1, 2, [function.name, 5, 6]]
+        self.assertEqual(
+            language.evaluate(expression, {}), [1, 2, 1, 2, 5, 6, 3])
+
+    def test_evaluation_multiple_functions(self):
+        parameter1 = language.make_variable()
+        parameter2 = language.make_variable()
+        function = language.Function(
+            parameters=[parameter1, parameter2],
+            body=[1, 2, parameter1, parameter2, 3])
+        function2 = language.Function(
+            parameters=[parameter1],
+            body=[[[function.name, 10, parameter1]],  3])
+        expression = [1, 2, [function2.name, 5]]
+        self.assertEqual(
+            language.evaluate(expression, {}), [1, 2, [1, 2, 10, 5, 3], 3])
