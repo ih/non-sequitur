@@ -1,5 +1,6 @@
 import language
 import antiunification
+import time
 import unification
 
 
@@ -29,7 +30,15 @@ def check(function):
         function.body = best_unification['new_body']
         # TODO find a better way to manage application_count
         best_unification['applied_function'].application_count += 1
+        # applications in the appplied function body
+        applied_application_counts = language.get_functions_used(
+            best_unification['applied_function'].body)
+        for function_name, count in applied_application_counts.iteritems():
+            language.Function.index[function_name].application_count -= count
         check(function)
+        # remove any underutilized functions
+        # TODO think about whether inlining should happen before check
+        inline_underutilized(applied_application_counts)
     else:
         # create a new function if it helps
         # here applications are
@@ -63,14 +72,7 @@ def check(function):
             applied_function_counts = language.get_functions_used(
                 new_function.body)
             decrement_application_counts(applied_function_counts, new_function)
-            applied_functions = applied_function_counts.keys()
-            underutilized_function_names = [
-                applied_function_name for applied_function_name
-                in applied_functions
-                if is_underutilized(applied_function_name)]
-            for underutilized_function_name in underutilized_function_names:
-                language.Function.inline(underutilized_function_name)
-                del language.Function.index[underutilized_function_name]
+            inline_underutilized(applied_function_counts)
 
 
 # TODO find a better place to put this
@@ -95,13 +97,26 @@ def is_underutilized(function_name):
     return language.Function.index[function_name].application_count < 2
 
 
+def inline_underutilized(application_counts):
+    underutilized_function_names = [
+        applied_function_name for applied_function_name
+        in application_counts.keys()
+        if is_underutilized(applied_function_name)]
+    for underutilized_function_name in underutilized_function_names:
+        language.Function.inline(underutilized_function_name)
+        del language.Function.index[underutilized_function_name]
+
+
 def main(data):
+    start = time.clock()
     language.Function.reset_index()
     data_program = language.Function(name=language.Symbol('start'))
-    for character in data:
+    for i, character in enumerate(data):
         print 'processing character %s' % character
         data_program.body.append(character)
         check(data_program)
+    end = time.clock()
+    print end-start
     return data_program
 
 
@@ -115,3 +130,6 @@ some like it hot,
 some like it cold,
 some like it in the pot,
 nine days old."""
+
+test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
+test2 = 'aa1ccdaa2ccd'
