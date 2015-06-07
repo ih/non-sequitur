@@ -132,4 +132,4 @@ some like it in the pot,
 nine days old."""
 
 test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
-test2 = 'aa1ccdaa2ccd'
+test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaaccd'

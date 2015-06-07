@@ -36,12 +36,12 @@ def find_best(target_function, possible_functions):
     }
     target_function_subexpressions = language.generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-    target_function_size = language.size(target_function.body)
+    target_function_size = language.expression_size(target_function.body)
 
     for other_function in possible_functions:
         function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-        other_function_size = language.size(other_function.body)
+        other_function_size = language.expression_size(other_function.body)
         total_size = target_function_size + other_function_size
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
@@ -68,9 +68,9 @@ def find_best(target_function, possible_functions):
                 parameters['variables'],
                 parameters['expression2_bindings'])
             new_total_size = (
-                language.size(applied_in_target_body) +
-                language.size(applied_in_other_body) +
-                language.size(abstract_expression) +
+                language.expression_size(applied_in_target_body) +
+                language.expression_size(applied_in_other_body) +
+                language.expression_size(abstract_expression) +
                 len(parameters['variables']))
 
             if target_function != other_function:
@@ -79,8 +79,8 @@ def find_best(target_function, possible_functions):
             else:
                 new_size_difference = (
                     target_function_size -
-                    (language.size(applied_in_target_body) +
-                     language.size(abstract_expression)))
+                    (language.expression_size(applied_in_target_body) +
+                     language.expression_size(abstract_expression)))
                 application_count = target_count
 
             if (new_size_difference >

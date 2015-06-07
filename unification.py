@@ -31,8 +31,8 @@ def find_best(target_function, possible_functions):
                 new_target_body = apply_function(
                     target_function.body, start_index, bindings, function)
                 size_difference = (
-                    language.size(target_function.body) -
-                    language.size(new_target_body))
+                    language.expression_size(target_function.body) -
+                    language.expression_size(new_target_body))
                 if size_difference > best_unification['size_difference']:
                     best_unification = {
                         'bindings': bindings,

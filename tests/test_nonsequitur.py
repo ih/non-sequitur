@@ -4,6 +4,10 @@ import nonsequitur
 
 
 class TestNonSequiturMethods(unittest.TestCase):
+    def setUp(self):
+        language.Symbol.reset_counter()
+        language.Function.reset_index()
+
     def test_substitute(self):
         name = language.Symbol('test')
         after_application = nonsequitur.substitute(

@@ -3,13 +3,20 @@ import utility
 
 VARIABLE_PREFIX = 'V'
 FUNCTION_PREFIX = 'F'
+FUNCTION_NAME_SIZE = 1
 
 
-def size(expression):
+def expression_size(expression):
     if type(expression) is list:
-        return sum([size(term) for term in expression])
+        return sum([expression_size(term) for term in expression])
     else:
         return 1
+
+
+def function_size(function):
+    return (
+        FUNCTION_NAME_SIZE + expression_size(function.body) +
+        len(function.parameters))
 
 
 class Symbol(object):
@@ -51,6 +58,11 @@ class Function(object):
     def print_all(cls):
         for function in cls.index.values():
             print function
+
+    @classmethod
+    def total_size(cls):
+        return sum(
+            [function_size(function) for function in cls.index.values()])
 
     @classmethod
     def inline(cls, inline_function):

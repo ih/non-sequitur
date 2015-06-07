@@ -9,7 +9,7 @@ class TestLanguage(unittest.TestCase):
         language.Function.reset_index()
 
     def test_size(self):
-        self.assertEqual(language.size([1, [2, 3], 4]), 4)
+        self.assertEqual(language.expression_size([1, [2, 3], 4]), 4)
 
     def test_symbol(self):
         language.Symbol('S')
@@ -24,6 +24,15 @@ class TestLanguage(unittest.TestCase):
         self.assertGreater(len(language.Function.index.keys()), 0)
         language.Function.reset_index()
         self.assertEqual(len(language.Function.index.keys()), 0)
+
+    def test_total_size(self):
+        language.Function(
+            parameters=[],
+            body=[[1, 2, 3], [3, 4, 5, 5, 7, 8, 9]])
+        language.Function(
+            parameters=[language.Symbol('V'), language.Symbol('V')],
+            body=[[1, 2, 3]])
+        self.assertEqual(language.Function.total_size(), 17)
 
     def test_longest_term_length(self):
         test_expression = [[1, 2, 3], 5, [7, [3, 4, 5, 6, 7, 8], 8], 10]
