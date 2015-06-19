@@ -165,3 +165,22 @@ f(x,y) = xyx is a pattern
 [F15 [] [['F14'], 's', 'e']]
 [F32 [] [['F31'], ' ', 't']]
 [F19 [] [['F18'], 'd', 'g']]
+***** ''aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
+starting w/
+v = language.make_variable()
+language.Function(parameters=[v], body=['a', 'a', v, 'c', 'c', 'd'])
+we get
+
+[F0 ['V0'] ['a', 'a', 'V0', 'c', 'c', 'd']] 5
+[start0 [] [['F0', '1'], 'q', ['F0', '2'], 'p', ['F0', '3'], 'm', ['F0', '4'], 'n', ['F0', '5']]] 0
+
+which has size 23
+
+for the default running w/o an initial function we get
+[F0 [] ['c', 'c', 'd']] 5
+[F1 [] ['a', 'a']] 5
+[start0 [] [['F1'], '1', ['F0'], 'q', ['F1'], '2', ['F0'], 'p', ['F1'], '3', ['F0'], 'm', ['F1'], '4', ['F0'], 'n', ['F1'], '5', ['F0']]] 0
+
+which has size 27
+
+problem seems to be the pattern isn't initially useful and smaller patterns are chosen first so by the time we get enough instances to find the pattern with a variable, we are using smaller pattern and

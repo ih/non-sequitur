@@ -78,6 +78,7 @@ class Function(object):
             function_with_application.body = substitute(
                 is_inline_application, inline_function.body,
                 function_with_application.body)
+        return functions_with_applications
 
     @classmethod
     def find_applications(cls, function):
@@ -88,7 +89,15 @@ class Function(object):
                 functions_with_applications.append(other_function)
         return functions_with_applications
 
-    def __init__(self, name=None, parameters=None, body=None):
+    @property
+    def compression_amount(self):
+        body_size = len(self.body)
+        parameter_size = len(self.parameters)
+        return (((body_size - (parameter_size + 1)) * self.application_count) -
+                (body_size + parameter_size + 1))
+
+    def __init__(
+            self, name=None, parameters=None, body=None, application_count=0):
         # can't set default argument to Symbol('F') since it is only run once
         if name is None:
             name = Symbol(FUNCTION_PREFIX)
@@ -99,7 +108,7 @@ class Function(object):
         self.name = name
         self.parameters = parameters
         self.body = body
-        self.application_count = 0
+        self.application_count = application_count
         assert name not in Function.index
         Function.index[self.name] = self
 

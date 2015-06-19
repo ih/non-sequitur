@@ -30,15 +30,19 @@ def check(function):
         function.body = best_unification['new_body']
         # TODO find a better way to manage application_count
         best_unification['applied_function'].application_count += 1
+        functions_to_check = [function]
         # applications in the appplied function body
         applied_application_counts = language.get_functions_used(
             best_unification['applied_function'].body)
         for function_name, count in applied_application_counts.iteritems():
             language.Function.index[function_name].application_count -= count
-        check(function)
-        # remove any underutilized functions
-        # TODO think about whether inlining should happen before check
-        inline_underutilized(applied_application_counts)
+            if is_underutilized(function_name):
+                inlined_into_functions = language.Function.inline(
+                    function_name)
+                for inlined_into_function in inlined_into_functions:
+                    functions_to_check.append(inlined_into_function)
+        for function_to_check in functions_to_check:
+            check(function_to_check)
     else:
         # create a new function if it helps
         # here applications are
@@ -49,67 +53,46 @@ def check(function):
         best_antiunification = antiunification.find_best(
             function, possible_functions)
         if best_antiunification['size_difference'] > 0:
-            other_function = language.Function.index[
-                best_antiunification['applied_in_other']['name']]
             new_function = language.Function(
                 parameters=best_antiunification['new_parameters']['variables'],
-                body=best_antiunification['new_body'])
-            new_function.application_count = (
-                best_antiunification['application_count'])
-            application_this_body = substitute(
-                new_function.name, antiunification.APPLICATION_PLACEHOLDER,
-                best_antiunification['applied_in_target']['body'])
-            application_other_body = substitute(
-                new_function.name, antiunification.APPLICATION_PLACEHOLDER,
-                best_antiunification['applied_in_other']['body'])
-            function.body = application_this_body
-            check(function)
-            other_function.body = application_other_body
-            check(other_function)
-            # remove any underutilized functions
-            # only need to check functions used in the body of new_function?
-            # only do if there was an antiunification?
+                body=best_antiunification['new_body'],
+                application_count=best_antiunification['application_count'])
             applied_function_counts = language.get_functions_used(
                 new_function.body)
-            decrement_application_counts(applied_function_counts, new_function)
-            inline_underutilized(applied_function_counts)
+            # one of the changed_functions will be function so we don't
+            # explicitly adjust it here
+            functions_to_check = []
+            for changed_data in best_antiunification['changed_functions']:
+                changed_function = language.Function.index[
+                    changed_data['name']]
+                new_function_body = substitute(
+                    new_function.name, antiunification.APPLICATION_PLACEHOLDER,
+                    changed_function['body'])
 
-
-# TODO find a better place to put this
-def decrement_application_counts(application_counts, new_function):
-    """
-    The number of applications for a function can decrease if they are in the
-    of a newly created function.  This function is called after antiunification
-    to decrement function application counts if appropriate
-    """
-    for function_name, application_count in application_counts.iteritems():
-        # each place we applied the new function we reduced the number of calls
-        # function_name by application_count, but we still have the calls in
-        # the new_function body so that's where the -1 of application_count - 1
-        # comes from
-        applications_removed = (
-            (new_function.application_count * application_count) - 1)
-        language.Function.index[
-            function_name].application_count -= applications_removed
+                changed_function.body = new_function_body
+                count_in_abstraction = (
+                    applied_function_counts[changed_function.name])
+                changed_function.application_count -= ((
+                    new_function.application_count * count_in_abstraction) +
+                                                       count_in_abstraction)
+                if is_underutilized(changed_function.name):
+                    inlined_into_functions = language.Function.inline(
+                        changed_function.name)
+                    for inlined_into_function in inlined_into_functions:
+                        functions_to_check.append(inlined_into_function)
+                else:
+                    functions_to_check.append(changed_function)
+            for function_to_check in functions_to_check:
+                check(function_to_check)
 
 
 def is_underutilized(function_name):
-    return language.Function.index[function_name].application_count < 2
-
-
-def inline_underutilized(application_counts):
-    underutilized_function_names = [
-        applied_function_name for applied_function_name
-        in application_counts.keys()
-        if is_underutilized(applied_function_name)]
-    for underutilized_function_name in underutilized_function_names:
-        language.Function.inline(underutilized_function_name)
-        del language.Function.index[underutilized_function_name]
+    return language.Function.index[function_name].compression_amount < 1
 
 
 def main(data):
     start = time.clock()
-    language.Function.reset_index()
+    # language.Function.reset_index()
     data_program = language.Function(name=language.Symbol('start'))
     for i, character in enumerate(data):
         print 'processing character %s' % character
@@ -132,4 +115,11 @@ some like it in the pot,
 nine days old."""
 
 test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
-test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaaccd'
+test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
+test3 = 'a1cqa2cma3coa4cpa5cra6c'
+
+# v = language.make_variable()
+# language.Function(parameters=[v], body=['a', v, 'c'])
+
+# v = language.make_variable()
+# language.Function(parameters=[v], body=['a', 'a', v, 'c', 'c', 'd'])
