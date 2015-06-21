@@ -13,15 +13,12 @@ def find_best(target_function, possible_functions):
     Returns:  {
         new_parameters - parameters for the created function,
         new_body - body for the created function,
-        applied_in_target - {
-            name: name of target_function,
-            body:  body of target_function with the new function applied
-        },
-        applied_in_other - {
-            name: name other function antiunified with application_target,
-            body: body of other function with new applied
-        },
-        size_difference: integer
+        application_count - number of times the new abstraction is appplied,
+        changed_functions: [
+          {name: name of changed function,
+           body: body of changed function with abstraction applied}
+        size_difference: the decrease in total size of the program using this
+          abstraction
     }
     """
     best_overall_antiunification = {
@@ -29,9 +26,8 @@ def find_best(target_function, possible_functions):
             'variables': [], 'expression1_bindings': {},
             'expression2_bindings': {}},
         'new_body': [],
-        'applied_in_target': {'name': None, 'body': []},
-        'applied_in_other': {'name': None, 'body': []},
         'application_count': 0,
+        'changed_functions': [],
         'size_difference': 0
     }
     target_function_subexpressions = language.generate_subexpressions(
@@ -41,8 +37,6 @@ def find_best(target_function, possible_functions):
     for other_function in possible_functions:
         function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-        other_function_size = language.expression_size(other_function.body)
-        total_size = target_function_size + other_function_size
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
         best_function_antiunification = {
@@ -59,6 +53,8 @@ def find_best(target_function, possible_functions):
         for target_subexpression, other_subexpression in subexpression_pairs:
             parameters, abstract_expression = antiunify(
                 target_subexpression, other_subexpression)
+
+            changed_functions = unification.apply_everywhere(abstract_expression
             applied_in_target_body, target_count = apply_abstract_expression(
                 target_function.body, target_subexpression,
                 parameters['variables'],
