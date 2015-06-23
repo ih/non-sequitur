@@ -47,29 +47,39 @@ class Symbol(object):
         return self.value
 
 
-class Function(object):
-    index = {}
+class Program(object):
+    def __init__(self):
+        self.functions = {}
+        self.application_counts = {}
 
-    @classmethod
-    def reset_index(cls):
-        cls.index = {}
+    def get_function(self, function_name):
+        return self.functions[function_name]
 
-    @classmethod
-    def print_all(cls):
-        for function in cls.index.values():
-            print function
+    def get_all_functions(self):
+        return self.functions.values()
 
-    @classmethod
-    def total_size(cls):
+    def add_new_function(self, new_function, application_count=0):
+        self.functions[new_function.name] = new_function
+        self.application_counts[new_function.name] = application_count
+
+    def change_application_count(self, function_name, amount_difference):
+        self.application_counts[function_name] += amount_difference
+
+    def size(self):
         return sum(
-            [function_size(function) for function in cls.index.values()])
+            [function_size(function) for function in self.functions.values()])
 
-    @classmethod
-    def inline(cls, inline_function):
+    def __str__(self):
+        all_functions = ''
+        for function in self.functions.values():
+            all_functions += str(function) + '\n'
+        return all_functions
+
+    def inline(self, inline_function):
         if is_function_name(inline_function):
-            inline_function = cls.index[inline_function]
+            inline_function = self.functions[inline_function]
         # optimize by keeping track of where applications are
-        functions_with_applications = cls.find_applications(inline_function)
+        functions_with_applications = self.find_applications(inline_function)
         assert len(functions_with_applications) == 1
 
         def is_inline_application(term):
@@ -80,22 +90,26 @@ class Function(object):
                 function_with_application.body)
         return functions_with_applications
 
-    @classmethod
-    def find_applications(cls, function):
+    def find_applications(self, function):
         functions_with_applications = []
-        for other_function in cls.index.values():
+        for other_function in self.functions.values():
             functions_used = get_functions_used(other_function.body)
             if function.name in functions_used:
                 functions_with_applications.append(other_function)
         return functions_with_applications
 
-    @property
-    def compression_amount(self):
-        body_size = len(self.body)
-        parameter_size = len(self.parameters)
-        return (((body_size - (parameter_size + 1)) * self.application_count) -
+    def compression_amount(self, function):
+        body_size = len(function.body)
+        parameter_size = len(function.parameters)
+        return (((body_size - (parameter_size + 1)) *
+                 self.application_counts[function.name]) -
                 (body_size + parameter_size + 1))
 
+        def is_underutilized(self, function_name):
+            return self.compression_amount(function_name) < 1
+
+
+class Function(object):
     def __init__(
             self, name=None, parameters=None, body=None, application_count=0):
         # can't set default argument to Symbol('F') since it is only run once
@@ -121,8 +135,7 @@ class Function(object):
             else:
                 string_body.append(str(term))
         return '[%s %s %s] %s' % (
-            str(self.name), string_parameters, string_body,
-            self.application_count)
+            str(self.name), string_parameters, string_body)
 
 
 def make_variable():
@@ -191,6 +204,9 @@ def get_functions_used(expression):
     """
     Get the functions used in an expression as well as how many times they are
     used.
+
+    Return:
+        {function_name: number of applications, ...}
     """
     functions = {}
     for term in utility.traverse(expression):

@@ -18,12 +18,7 @@ class TestLanguage(unittest.TestCase):
         self.assertEquals(language.Symbol.prefix_counter['S'], 2)
         self.assertEquals(language.Symbol.prefix_counter['V'], 1)
 
-    def test_function_reset_index(self):
-        language.Function()
-        language.Function()
-        self.assertGreater(len(language.Function.index.keys()), 0)
-        language.Function.reset_index()
-        self.assertEqual(len(language.Function.index.keys()), 0)
+
 
     def test_total_size(self):
         language.Function(
