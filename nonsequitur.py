@@ -33,52 +33,44 @@ def check(function, program):
             best_unification['applied_function'].name] += 1
         functions_to_check = [function]
         # applications in the appplied function body
-        underutilized_function_names = (
-            reduce_application_counts_for_applied_body_applications(
-                best_unification['applied_function'].body, 1, program))
-        for function_name in underutilized_function_names:
-            program.inline(function_name)
-        for function_name in underutilized_function_names:
-            functions_to_check.append(program.get_function(function_name))
+        inlined_functions = enforce_rule_utility(
+            best_unification['applied_function'].body, 1, program)
+        functions_to_check.extend(inlined_functions)
         for function in functions_to_check:
             check(function, program)
     else:
-        # create a new function if it helps
-        # here applications are
-        # {name: function_name, body: body_with_application}
-        possible_functions = program.get_all_functions()
-        # since possible_functions includes function we always check for
-        # patterns within the function itself
+        other_functions = program.get_all_functions()
         best_antiunification = antiunification.find_best(
-            function, possible_functions)
-        if best_antiunification['size_difference'] > 0:
-            new_function = language.Function(
-                parameters=best_antiunification['new_parameters']['variables'],
-                body=best_antiunification['new_body'])
+            function, other_functions)
+        if best_antiunification is not None:
+            new_function = best_antiunification['new_function']
+            new_function_application_count = len(
+                best_antiunification['changed_functions'])
             program.add_new_function(
-                new_function, best_antiunification['application_count'])
-            functions_to_check = []
-            increase_application_counts_for_new_function_applications(
-                new_function.body, program)
-            underutilized_function_names = (
-                reduce_application_counts_for_applied_body_applications(
-                    new_function.body,
-                    best_antiunification['application_count'], program))
-            for function_name in underutilized_function_names:
-                program.inline(function_name)
-            for function_name in underutilized_function_names:
-                functions_to_check.append(program.get_function(function_name))
-            for changed_function_data in best_antiunification[
-                    'changed_functions']:
-                changed_function = program.get_function(
-                    changed_function_data['name'])
-                new_function_body = substitute(
-                    new_function.name, antiunification.APPLICATION_PLACEHOLDER,
-                    changed_function_data['body'])
-                changed_function.body = new_function_body
-                functions_to_check.append(changed_function)
+                new_function, new_function_application_count)
+
+            for changed_function in best_antiunification['changed_functions']:
+                program.set_function(changed_function.name, changed_function)
+            inlined_functions = enforce_rule_utility(
+                new_function.body, new_function_application_count, program)
+
+            functions_to_check = list(set(inlined_functions.extend(
+                best_antiunification['changed_function'])))
+
             for function_to_check in functions_to_check:
                 check(function_to_check)
+
+
+def enforce_rule_utility(body, application_count, program):
+    # inline functions
+    inlined_functions = []
+    underutilized_function_names = (
+        reduce_application_counts_for_applied_body_applications(
+            body, application_count, program))
+    for function_name in underutilized_function_names:
+        program.inline(function_name)
+        inlined_functions.append(program.get_function(function_name))
+    return inlined_functions
 
 
 def increase_application_counts_for_new_function_applications(
