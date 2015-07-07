@@ -1,102 +1,66 @@
 import collections
 import language
 import utility
+import unification
 # expressions
 APPLICATION_PLACEHOLDER = '?'
 MINIMUM_SUBEXPRESSION_LENGTH = 2
 
 
-def find_best(target_function, possible_functions):
-    """Creates a new function and shows how it gets applied.
+def find_best(target_function, other_functions):
+    """Find the antiunification between target_function and other_functions that
+    compresses other_functions the most.  Assumes other_functions contains
+    target_function
     args:
         target_function - the function to be checked against all other function
     Returns:  {
-        new_parameters - parameters for the created function,
-        new_body - body for the created function,
-        application_count - number of times the new abstraction is appplied,
-        changed_functions: [
-          {name: name of changed function,
-           body: body of changed function with abstraction applied}
-        size_difference: the decrease in total size of the program using this
-          abstraction
+        new_function: the function created through antiunification,
+        compressed_functions: a list of functions where the new_function was
+            applied in the body
     }
     """
-    best_overall_antiunification = {
-        'new_parameters': {
-            'variables': [], 'expression1_bindings': {},
-            'expression2_bindings': {}},
-        'new_body': [],
-        'application_count': 0,
-        'changed_functions': [],
-        'size_difference': 0
-    }
+    assert(target_function in other_functions)
+    best_antiunification = None
+    best_compression_amount = 0
     target_function_subexpressions = language.generate_subexpressions(
         target_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
-    target_function_size = language.expression_size(target_function.body)
-
-    for other_function in possible_functions:
+    for other_function in other_functions:
         function_subexpressions = language.generate_subexpressions(
             other_function.body, MINIMUM_SUBEXPRESSION_LENGTH)
         subexpression_pairs = generate_possible_pairs(
             target_function_subexpressions, function_subexpressions)
-        best_function_antiunification = {
-            'new_parameters': {
-                'variables': [], 'expression1_bindings': {},
-                'expression2_bindings': {}},
-            'new_body': [],
-            'applied_in_target': {'name': None, 'body': []},
-            'applied_in_other': {'name': None, 'body': []},
-            'application_count': 0,
-            'size_difference': 0
-        }
         # this can probably be parallelized
         for target_subexpression, other_subexpression in subexpression_pairs:
-            parameters, abstract_expression = antiunify(
+            abstracted_function = antiunify(
                 target_subexpression, other_subexpression)
-
-            changed_functions = unification.apply_everywhere(abstract_expression
-            applied_in_target_body, target_count = apply_abstract_expression(
-                target_function.body, target_subexpression,
-                parameters['variables'],
-                parameters['expression1_bindings'])
-            applied_in_other_body, other_count = apply_abstract_expression(
-                other_function.body, other_subexpression,
-                parameters['variables'],
-                parameters['expression2_bindings'])
-            new_total_size = (
-                language.expression_size(applied_in_target_body) +
-                language.expression_size(applied_in_other_body) +
-                language.expression_size(abstract_expression) +
-                len(parameters['variables']))
-
-            if target_function != other_function:
-                new_size_difference = total_size - new_total_size
-                application_count = target_count+other_count
-            else:
-                new_size_difference = (
-                    target_function_size -
-                    (language.expression_size(applied_in_target_body) +
-                     language.expression_size(abstract_expression)))
-                application_count = target_count
-
-            if (new_size_difference >
-                    best_function_antiunification['size_difference']):
-                best_function_antiunification = {
-                    'new_parameters': parameters,
-                    'new_body': abstract_expression,
-                    'applied_in_target': {
-                        'name': target_function.name,
-                        'body': applied_in_target_body},
-                    'applied_in_other': {
-                        'name': other_function.name,
-                        'body': applied_in_other_body},
-                    'application_count': application_count,
-                    'size_difference': new_size_difference
+            compressed_functions = unification.compress_functions(
+                abstracted_function, other_functions)
+            compression_amount = compute_compression_amount(
+                compressed_functions, other_functions)
+            if compression_amount > best_compression_amount:
+                best_antiunification = {
+                    'new_function': abstracted_function,
+                    'compressed_functions': compressed_functions
                 }
-        if (best_function_antiunification['size_difference'] >
-                best_overall_antiunification['size_difference']):
-            best_overall_antiunification = best_function_antiunification
-    return best_overall_antiunification
+    return best_antiunification
+
+
+def compute_compression_amount(compressed_functions, possible_functions):
+    # TODO cleaner way to write this w/o internal function?
+    def find_original(target_function, all_functions):
+        for function in all_functions:
+            if target_function.name == function.name:
+                return function
+        assert(False)
+    compression_amount = 0
+    for compressed_function in compressed_functions:
+        original_function = find_original(
+            compressed_function, possible_functions)
+        compressed_function_size = language.function_size(compressed_function)
+        original_size = language.function_size(original_function)
+        assert(compressed_function_size < original_size)
+        compression_amount += (original_size - compressed_function_size)
+    return compression_amount
 
 
 def apply_abstract_expression(expression, subexpression, variables, bindings):
@@ -147,12 +111,7 @@ def antiunify(expression1, expression2):
     e.g. [+, [-, 3, 4], 2] and [+, [*, 3, 4] , 3] => [+, [x, 3, 4], y]
 
     Returns:
-        parameters - {
-            'variables': [variable, ...],
-            'expression1_arguments': {'variable': value, ...},
-            'expression2_arguments': {'variable': value, ...}
-        }
-        abstract_expression - [expression containing variables]
+        Function - a language.Function with name prefixed by Temp
     """
     if len(expression1) != len(expression2):
         return False
@@ -193,7 +152,10 @@ def antiunify(expression1, expression2):
         'expression2_bindings': dict([
             (variable, parameters[variable][1]) for variable in variables])
     }
-    return parameters, abstract_expression
+    new_function = language.Function(
+        name=language.Symbol('Temp'), parameters=variables,
+        body=abstract_expression)
+    return new_function
 
 
 def reduce_parameters(parameters, abstract_expression):

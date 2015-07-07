@@ -49,13 +49,15 @@ def check(function, program):
             program.add_new_function(
                 new_function, new_function_application_count)
 
-            for changed_function in best_antiunification['changed_functions']:
-                program.set_function(changed_function.name, changed_function)
+            for compressed_function in best_antiunification[
+                    'compressed_functions']:
+                program.set_function(
+                    compressed_function.name, compressed_function)
             inlined_functions = enforce_rule_utility(
                 new_function.body, new_function_application_count, program)
 
             functions_to_check = list(set(inlined_functions.extend(
-                best_antiunification['changed_function'])))
+                best_antiunification['compressed_function'])))
 
             for function_to_check in functions_to_check:
                 check(function_to_check)
