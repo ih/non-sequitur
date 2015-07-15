@@ -1,3 +1,5 @@
+import collections
+import copy
 import language
 
 
@@ -105,3 +107,50 @@ def evaluate(expression, environment):
     if language.is_variable(expression) and expression in environment:
         return environment[expression]
     return expression
+
+
+def compress_functions(compressor, functions_to_compress):
+    """use the compressor function to compress functions_to_compress via
+    unification
+
+    return a list of functions from functions_to_compress where compressor
+    function acutally compressed the function
+    """
+    compressed_functions = []
+    for function in functions_to_compress:
+        compressed_function = compress_function(
+            compressor, function)
+        if language.function_size(
+                compressed_function) < language.function_size(function):
+            compress_functions.append(compressed_function)
+    return compressed_functions
+
+
+def compress_function(compressor, function):
+    compressed_function = copy.deepcopy(function)
+    compressed_body = []
+    subexpression_queue = collections.deque(
+        [(compressed_function.body, compressed_body)])
+
+    while len(subexpression_queue) > 0:
+        current_subexpression, current_applied = subexpression_queue.popleft()
+        start_index = 0
+        while start_index < len(current_subexpression):
+            current_segment = current_subexpression[
+                start_index: start_index+len(compressor.body)]
+            bindings = unify(compressor.body, current_segment, {})
+            if bindings:
+                function_call = [compressor.name] + [
+                    bindings[variable] for variable in compressor.parameters]
+                current_applied.append(function_call)
+                start_index += len(compressor.body)
+            else:
+                term = current_subexpression[start_index]
+                start_index += 1
+                if type(term) is list:
+                    current_applied.append([])
+                    subexpression_queue.append((term, current_applied[-1]))
+                else:
+                    current_applied.append(term)
+    compressed_function.body = compressed_body
+    return compressed_function

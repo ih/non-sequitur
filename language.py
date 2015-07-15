@@ -98,6 +98,14 @@ class Program(object):
                 functions_with_applications.append(other_function)
         return functions_with_applications
 
+    def count_applications(self, function):
+        application_count = 0
+        for other_function in self.functions.values():
+            functions_used = get_functions_used(other_function.body)
+            if function.name in functions_used:
+                application_count += functions_used[function.name]
+        return application_count
+
     def compression_amount(self, function):
         body_size = len(function.body)
         parameter_size = len(function.parameters)

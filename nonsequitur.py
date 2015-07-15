@@ -43,16 +43,16 @@ def check(function, program):
         best_antiunification = antiunification.find_best(
             function, other_functions)
         if best_antiunification is not None:
-            new_function = best_antiunification['new_function']
-            new_function_application_count = len(
-                best_antiunification['changed_functions'])
-            program.add_new_function(
-                new_function, new_function_application_count)
-
             for compressed_function in best_antiunification[
                     'compressed_functions']:
                 program.set_function(
                     compressed_function.name, compressed_function)
+            new_function = best_antiunification['new_function']
+            program.add_new_function(new_function)
+            new_function_application_count = program.application_count(
+                new_function)
+            program.change_application_count(
+                new_function.name, new_function_application_count)
             inlined_functions = enforce_rule_utility(
                 new_function.body, new_function_application_count, program)
 
