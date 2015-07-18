@@ -18,8 +18,6 @@ class TestLanguage(unittest.TestCase):
         self.assertEquals(language.Symbol.prefix_counter['S'], 2)
         self.assertEquals(language.Symbol.prefix_counter['V'], 1)
 
-
-
     def test_total_size(self):
         language.Function(
             parameters=[],

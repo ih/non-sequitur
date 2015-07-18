@@ -89,3 +89,19 @@ class TestUnificationMethods(unittest.TestCase):
                 'size_difference': 3,
                 'applied_function': good_function
             })
+
+    def test_compress_function(self):
+        variable = language.make_variable()
+        compressor = language.Function(
+            parameters=[variable], body=['a', variable, 'c'])
+        to_compress_string = 'a1cqa2cma3coa4cpa5cra6c'
+        to_compress = language.Function(body=list(to_compress_string))
+        compressed = unification.compress_function(compressor, to_compress)
+        self.assertEqual(
+            compressed.body,
+            [[compressor.name, '1'], 'q',
+             [compressor.name, '2'], 'm',
+             [compressor.name, '3'], 'o',
+             [compressor.name, '4'], 'p',
+             [compressor.name, '5'], 'r',
+             [compressor.name, '6']])

@@ -113,8 +113,15 @@ def compress_functions(compressor, functions_to_compress):
     """use the compressor function to compress functions_to_compress via
     unification
 
-    return a list of functions from functions_to_compress where compressor
-    function acutally compressed the function
+    args:
+      compressor - language.Function used to compress functions_to_compress
+    by finding places where compressor can be applied
+      functions_to_compress - [language.Function, ...] functions to where
+    applications of compressor will be applied
+
+    returns:
+      [language.Function,...] a list of functions from functions_to_compress
+    where compressor function actually compressed the function
     """
     compressed_functions = []
     for function in functions_to_compress:
@@ -127,6 +134,16 @@ def compress_functions(compressor, functions_to_compress):
 
 
 def compress_function(compressor, function):
+    """Take two functions and return the second function compressed by the first
+    args:
+      compressor - language.Function will be applied to body of function
+      function - language.Function whose body is compressed by applying
+    compressor
+
+    returns:
+      language.Function the compressed version of function where compressor has
+    been applied
+    """
     compressed_function = copy.deepcopy(function)
     compressed_body = []
     subexpression_queue = collections.deque(

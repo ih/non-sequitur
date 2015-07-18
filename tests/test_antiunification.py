@@ -7,35 +7,20 @@ class TestAntiunification(unittest.TestCase):
     def test_antiunify(self):
         expression1 = ['+', ['-', 3, 4], 2]
         expression2 = ['+', ['*', 3, 4], 3]
-        parameters, abstract_expression = antiunification.antiunify(
+        abstracted_function = antiunification.antiunify(
             expression1, expression2)
         language.Symbol.reset_counter()
         variable1 = language.make_variable()
         variable2 = language.make_variable()
         correct_abstract_expression = ['+', [variable2, 3, 4], variable1]
-        self.assertSetEqual(
-            set([variable1, variable2]), set(parameters['variables']))
-        self.assertEquals(abstract_expression, correct_abstract_expression)
-        self.assertEquals(
-            parameters['expression1_bindings'],
-            {variable1: 2, variable2: '-'})
-        self.assertEquals(
-            parameters['expression2_bindings'],
-            {variable1: 3, variable2: '*'})
+        self.assertEqual(
+            abstracted_function.body, correct_abstract_expression)
 
     def test_antiunify_self(self):
         expression = ['+', ['-', 3, 4], 2]
-        parameters, abstract_expression = antiunification.antiunify(
+        abstracted_function = antiunification.antiunify(
             expression, expression)
-        self.assertEquals(
-            parameters,
-            {
-                'expression1_bindings': {},
-                'variables': [],
-                'expression2_bindings': {}
-            }
-        )
-        self.assertEquals(abstract_expression, expression)
+        self.assertEquals(abstracted_function.body, expression)
 
     def test_generate_possible_pairs_self(self):
         test_expression = [[1, 2], [1, 2, [4, 5]], [7, 8], [1, 2]]

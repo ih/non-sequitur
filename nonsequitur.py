@@ -40,6 +40,7 @@ def check(function, program):
             check(function, program)
     else:
         other_functions = program.get_all_functions()
+        assert(function in other_functions)
         best_antiunification = antiunification.find_best(
             function, other_functions)
         if best_antiunification is not None:

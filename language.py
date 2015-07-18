@@ -131,8 +131,6 @@ class Function(object):
         self.parameters = parameters
         self.body = body
         self.application_count = application_count
-        assert name not in Function.index
-        Function.index[self.name] = self
 
     def __str__(self):
         string_parameters = [str(parameter) for parameter in self.parameters]

@@ -19,7 +19,6 @@ def find_best(target_function, other_functions):
             applied in the body
     }
     """
-    assert(target_function in other_functions)
     best_antiunification = None
     best_compression_amount = 0
     target_function_subexpressions = language.generate_subexpressions(
