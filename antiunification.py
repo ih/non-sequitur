@@ -35,16 +35,18 @@ def find_best(target_function, other_functions):
             compressed_functions = unification.compress_functions(
                 abstracted_function, other_functions)
             compression_amount = compute_compression_amount(
-                compressed_functions, other_functions)
+                abstracted_function, compressed_functions, other_functions)
             if compression_amount > best_compression_amount:
                 best_antiunification = {
                     'new_function': abstracted_function,
                     'compressed_functions': compressed_functions
                 }
+                best_compression_amount = compression_amount
     return best_antiunification
 
 
-def compute_compression_amount(compressed_functions, possible_functions):
+def compute_compression_amount(
+        compressor, compressed_functions, original_functions):
     # TODO cleaner way to write this w/o internal function?
     def find_original(target_function, all_functions):
         for function in all_functions:
@@ -54,12 +56,12 @@ def compute_compression_amount(compressed_functions, possible_functions):
     compression_amount = 0
     for compressed_function in compressed_functions:
         original_function = find_original(
-            compressed_function, possible_functions)
+            compressed_function, original_functions)
         compressed_function_size = language.function_size(compressed_function)
         original_size = language.function_size(original_function)
         assert(compressed_function_size < original_size)
         compression_amount += (original_size - compressed_function_size)
-    return compression_amount
+    return compression_amount - language.function_size(compressor)
 
 
 def apply_abstract_expression(expression, subexpression, variables, bindings):
@@ -180,3 +182,12 @@ def generate_possible_pairs(expression_list1, expression_list2):
                     pairs[possible_pair] = True
     return [(utility.tuple2list(pair[0]), utility.tuple2list(pair[1])) for
             pair in pairs]
+
+if __name__ == '__main__':
+    test_function = language.Function(
+        parameters=[],
+        body=[[1, 2], [1, 2, [1, 2]], [7, 8, 9], [7, 8, 9], [1, 2]])
+    best = find_best(
+        test_function, [test_function])
+    print best['new_function']
+    print best['compressed_functions'][0]

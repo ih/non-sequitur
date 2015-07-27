@@ -1,5 +1,6 @@
 import antiunification
 import language
+import unification
 import unittest
 
 
@@ -13,8 +14,8 @@ class TestAntiunification(unittest.TestCase):
         variable1 = language.make_variable()
         variable2 = language.make_variable()
         correct_abstract_expression = ['+', [variable2, 3, 4], variable1]
-        self.assertEqual(
-            abstracted_function.body, correct_abstract_expression)
+        self.assertEqual(unification.is_equivalent_expression(
+            abstracted_function.body, correct_abstract_expression), True)
 
     def test_antiunify_self(self):
         expression = ['+', ['-', 3, 4], 2]
@@ -76,25 +77,7 @@ class TestAntiunification(unittest.TestCase):
             body=['-', ['+', 2, 3, 4], 3])
         best = antiunification.find_best(
             test_function, [test_function, alternative_function])
-        true_best = {
-            'new_parameters': {
-                'expression1_bindings': {},
-                'expression2_bindings': {},
-                'variables': []
-            },
-            'new_body': [1, 2],
-            'applied_in_target': {
-                'name': test_function.name,
-                'body': [
-                    [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]]},
-            'applied_in_other': {
-                'name': test_function.name,
-                'body': [
-                    [['?']], [['?'], [['?']]], [7, 8, 9], [7, 8, 9], [['?']]]},
-            'application_count': 4,
-            'size_difference': 2
-        }
-        self.assertEqual(best, true_best)
+        self.assertEqual(best['new_function'].body, [1, 2])
 
     def test_find_best(self):
         test_function = language.Function(
@@ -108,16 +91,12 @@ class TestAntiunification(unittest.TestCase):
             body=[1, 2, 3])
         best = antiunification.find_best(
             test_function, [alternative_function1, alternative_function2])
-        true_best = {
-            'applied_in_target': {'body': [[1, 2, 3], [['?', 5]]]},
-            'applied_in_other': {'body': ['-', [['?', 6]], 3]},
-            'size_difference': 2
-        }
-        self.assertEqual(
-            best['applied_in_target']['body'],
-            true_best['applied_in_target']['body'])
-        self.assertEqual(
-            best['applied_in_other']['body'],
-            true_best['applied_in_other']['body'])
-        self.assertEqual(
-            best['size_difference'], true_best['size_difference'])
+        self.assertEqual(best, None)
+        best = antiunification.find_best(
+            test_function,
+            [alternative_function1, alternative_function2, test_function])
+        self.assertEqual(len(best['new_function'].parameters), 1)
+        variable = best['new_function'].parameters[0]
+        self.assertEqual(unification.is_equivalent_expression(
+            best['new_function'].body, [3, 4, 5, variable, 7, 8, 9]), True)
+        self.assertEqual(len(best['compressed_functions']), 2)

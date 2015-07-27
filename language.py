@@ -140,7 +140,7 @@ class Function(object):
                 string_body.append([str(subterm) for subterm in term])
             else:
                 string_body.append(str(term))
-        return '[%s %s %s] %s' % (
+        return '[%s %s %s]' % (
             str(self.name), string_parameters, string_body)
 
 

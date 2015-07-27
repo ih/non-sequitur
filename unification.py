@@ -83,7 +83,9 @@ def unify(expression1, expression2, environment):
             return environment
     elif (type(evaluated_expression1) is list and
           type(evaluated_expression2) is list):
-
+        if evaluated_expression1 == [] or evaluated_expression2 == []:
+            assert evaluated_expression1 != evaluated_expression2
+            return False
         new_environment = unify(
             evaluated_expression1[0], evaluated_expression2[0], environment)
         return unify(
@@ -129,7 +131,7 @@ def compress_functions(compressor, functions_to_compress):
             compressor, function)
         if language.function_size(
                 compressed_function) < language.function_size(function):
-            compress_functions.append(compressed_function)
+            compressed_functions.append(compressed_function)
     return compressed_functions
 
 
@@ -156,7 +158,7 @@ def compress_function(compressor, function):
             current_segment = current_subexpression[
                 start_index: start_index+len(compressor.body)]
             bindings = unify(compressor.body, current_segment, {})
-            if bindings:
+            if bindings is not False:
                 function_call = [compressor.name] + [
                     bindings[variable] for variable in compressor.parameters]
                 current_applied.append(function_call)
@@ -171,3 +173,36 @@ def compress_function(compressor, function):
                     current_applied.append(term)
     compressed_function.body = compressed_body
     return compressed_function
+
+
+def is_equivalent_expression(expression1, expression2):
+    unified = unify(expression1, expression2, {})
+    if unified is False:
+        return False
+    # make sure non-variable parts are equal
+    subexpression_queue = collections.deque([(expression1, expression2)])
+    while len(subexpression_queue) > 0:
+        subexpression1, subexpression2 = subexpression_queue.popleft()
+        if len(subexpression1) != len(subexpression2):
+            return False
+        for i in range(len(subexpression1)):
+            term1 = subexpression1[i]
+            term2 = subexpression2[i]
+            if type(term1) == list and type(term2) == list:
+                subexpression_queue.append((term1, term2))
+                continue
+            if language.is_variable(term1) and language.is_variable(term2):
+                continue
+            if term1 != term2:
+                return False
+    return True
+
+
+if __name__ == '__main__':
+    compressor = language.Function(
+        parameters=[], body=[1, 2])
+    to_compress = language.Function(
+        parameters=[],
+        body=[[1, 2], [1, 2, [1, 2]], [7, 8, 9], [7, 8, 9], [1, 2]])
+    compressed = compress_function(compressor, to_compress)
+    print compressed

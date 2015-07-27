@@ -65,6 +65,12 @@ class TestUnificationMethods(unittest.TestCase):
             unification.unify(['+', x, 1, 2], ['+', 1, x, x], {}), False)
         self.assertEqual(
             unification.unify([x, y, 'a'], [y, x, x], {}), {y: 'a', x: y})
+        self.assertEqual(
+            unification.unify([x, y, 'a'], [], {}), False)
+        self.assertEqual(
+            unification.unify([], [y, x, x], {}), False)
+        self.assertEqual(
+            unification.unify([], [], {}), {})
 
     def test_find_best(self):
         target_function = language.Function(
@@ -105,3 +111,22 @@ class TestUnificationMethods(unittest.TestCase):
              [compressor.name, '4'], 'p',
              [compressor.name, '5'], 'r',
              [compressor.name, '6']])
+
+    def test_compress_function2(self):
+        compressor = language.Function(
+            parameters=[], body=[1, 2])
+        to_compress = language.Function(
+            parameters=[],
+            body=[[1, 2], [1, 2, [1, 2]], [7, 8, 9], [7, 8, 9], [1, 2]])
+        compressed = unification.compress_function(compressor, to_compress)
+        self.assertEqual(
+            compressed.body,
+            [[[compressor.name]], [[compressor.name], [[compressor.name]]],
+             [7, 8, 9], [7, 8, 9], [[compressor.name]]])
+
+    def test_is_equivalent_expression(self):
+        variables = [language.make_variable() for i in range(4)]
+        exp1 = ['+', [variables[0], '3', '4'], variables[1]]
+        exp2 = ['+', [variables[2], '3', '4'], variables[3]]
+        self.assertEqual(
+            unification.is_equivalent_expression(exp1, exp2), True)
