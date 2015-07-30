@@ -240,16 +240,17 @@ def is_application(term):
     return type(term) is list and is_function_name(term[0])
 
 
-def evaluate(expression, environment):
+def evaluate(expression, program, environment):
     if is_application(expression):
-        new_environment = bind_variables(expression, environment)
+        new_environment = bind_variables(expression, program, environment)
         # look up the function in the environment not the global index or pass
         # a program?
-        return evaluate(Function.index[expression[0]].body, new_environment)
+        return evaluate(
+            program.functions[expression[0]].body, program, new_environment)
     elif type(expression) is list:
         evaluated_expression = []
         for term in expression:
-            evaluated_term = evaluate(term, environment)
+            evaluated_term = evaluate(term, program, environment)
             if is_application(term):
                 evaluated_expression.extend(evaluated_term)
             else:
@@ -262,7 +263,7 @@ def evaluate(expression, environment):
         return expression
 
 
-def bind_variables(function_application, environment):
+def bind_variables(function_application, program, environment):
     if len(function_application) == 1:
         return environment
     new_environment = environment.copy()
@@ -271,7 +272,8 @@ def bind_variables(function_application, environment):
     # look up the function in the environment not the global index or pass
     # a program?
     evaluated_arguments = [
-        evaluate(argument, environment) for argument in function_arguments]
+        evaluate(
+            argument, program, environment) for argument in function_arguments]
     new_environment.update(
-        zip(Function.index[function_name].parameters, evaluated_arguments))
+        zip(program.functions[function_name].parameters, evaluated_arguments))
     return new_environment
