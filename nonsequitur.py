@@ -51,17 +51,17 @@ def check(function, program):
             new_function = best_antiunification['new_function']
             program.add_new_function(new_function)
             new_function_application_count = program.application_count(
-                new_function)
+                new_function.name)
             program.change_application_count(
                 new_function.name, new_function_application_count)
             inlined_functions = enforce_rule_utility(
                 new_function.body, new_function_application_count, program)
-
-            functions_to_check = list(set(inlined_functions.extend(
-                best_antiunification['compressed_function'])))
+            inlined_functions.extend(
+                best_antiunification['compressed_functions'])
+            functions_to_check = list(set(inlined_functions))
 
             for function_to_check in functions_to_check:
-                check(function_to_check)
+                check(function_to_check, program)
 
 
 def enforce_rule_utility(body, application_count, program):

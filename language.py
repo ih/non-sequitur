@@ -62,8 +62,14 @@ class Program(object):
         self.functions[new_function.name] = new_function
         self.application_counts[new_function.name] = application_count
 
+    def set_function(self, function_name, function):
+        self.functions[function_name] = function
+
     def change_application_count(self, function_name, amount_difference):
         self.application_counts[function_name] += amount_difference
+
+    def application_count(self, function_name):
+        return self.application_counts[function_name]
 
     def size(self):
         return sum(
