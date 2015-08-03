@@ -158,7 +158,11 @@ def compress_function(compressor, function):
             current_segment = current_subexpression[
                 start_index: start_index+len(compressor.body)]
             bindings = unify(compressor.body, current_segment, {})
-            if bindings is not False:
+            # bindings might be valid, but it might be the case current_segment
+            # has variables that capture some of the parameters of compressor
+            if (bindings is not False and
+                all([parameter in bindings for parameter in
+                     compressor.parameters])):
                 function_call = [compressor.name] + [
                     bindings[variable] for variable in compressor.parameters]
                 current_applied.append(function_call)

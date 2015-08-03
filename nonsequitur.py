@@ -127,6 +127,7 @@ test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
 test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
 test3 = 'a1cqa2cma3coa4cpa5cra6c'
 
+print main(test3)
 # v = language.make_variable()
 # language.Function(parameters=[v], body=['a', v, 'c'])
 

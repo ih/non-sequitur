@@ -20,19 +20,16 @@ class TestNonSequiturMethods(unittest.TestCase):
         self.assertEqual(len(functions), 2)
         start = language.Symbol('start', 0)
         function_name = (
-            functions[0].name if functions[0].name != start else function[1].name)
+            functions[0].name if (
+                functions[0].name != start) else functions[1].name)
         self.assertEqual(
-            program.functions[start].body, [[function_name], 'b', 'c', [function_name]])
+            program.functions[start].body,
+            [[function_name], 'b', 'c', [function_name]])
 
-        # self.assertEqual(
-        #     str(program), "[start0 [] [['F1'], ['F0'], ['F1']]] 0")
-        # self.assertEqual(
-        #     str(language.Function.index[language.Symbol('F', 1)]),
-        #     "[F1 [] ['a', ['F0'], 'd']] 2")
-        # self.assertEqual(
-        #     str(language.Function.index[language.Symbol('F', 0)]),
-        #     "[F0 [] ['b', 'c']] 2")
-
+    def test_main2(self):
+        test_data = 'a1cqa2cma3coa4cpa5cra6c'
+        program = nonsequitur.main(test_data)
+        print program
 
 if __name__ == '__main__':
     unittest.main()
