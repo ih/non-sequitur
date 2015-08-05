@@ -17,10 +17,11 @@ def substitute(function_name, place_holder, application_body):
     return substitution
 
 
-def check(function, program):
+def check(function_name, program):
     """Any time a function changes try to see if a compression can be made.
     First try to apply an existing pattern, then try to create a new pattern,
     then remove any under-utilized patterns."""
+    function = program.get_function(function_name)
     # apply existing functions
     other_functions = program.get_all_functions()
     other_functions.remove(function)
@@ -37,7 +38,7 @@ def check(function, program):
             best_unification['applied_function'].body, 1, program)
         functions_to_check.extend(inlined_functions)
         for function in functions_to_check:
-            check(function, program)
+            check(function.name, program)
     else:
         other_functions = program.get_all_functions()
         assert(function in other_functions)
@@ -61,7 +62,7 @@ def check(function, program):
             functions_to_check = list(set(inlined_functions))
 
             for function_to_check in functions_to_check:
-                check(function_to_check, program)
+                check(function_to_check.name, program)
 
 
 def enforce_rule_utility(body, application_count, program):
@@ -105,8 +106,8 @@ def main(data):
     data_program.add_new_function(start_function)
     for i, character in enumerate(data):
         print 'processing character %s' % character
-        start_function.body.append(character)
-        check(start_function, data_program)
+        data_program.get_function(start_function.name).body.append(character)
+        check(start_function.name, data_program)
     end = time.clock()
     print end-start
     return data_program
@@ -127,7 +128,7 @@ test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
 test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
 test3 = 'a1cqa2cma3coa4cpa5cra6c'
 
-print main(test3)
+print main(peas)
 # v = language.make_variable()
 # language.Function(parameters=[v], body=['a', v, 'c'])
 
