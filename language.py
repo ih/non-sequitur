@@ -48,9 +48,16 @@ class Symbol(object):
 
 
 class Program(object):
-    def __init__(self):
+    def __init__(self, main_function=None):
         self.functions = {}
         self.application_counts = {}
+        if main_function:
+            self.main_function_name = main_function.name
+            self.add_new_function(main_function)
+
+    @property
+    def main_function(self):
+        return self.get_function(self.main_function_name)
 
     def get_function(self, function_name):
         return self.functions[function_name]
@@ -283,3 +290,20 @@ def bind_variables(function_application, program, environment):
     new_environment.update(
         zip(program.functions[function_name].parameters, evaluated_arguments))
     return new_environment
+
+
+def capture_applications(program):
+    applications = {}
+    expression_queue = collections.deque([program.main_function.body])
+    while expression_queue:
+        expression = expression_queue.popleft()
+        for term in expression:
+            if is_application(term):
+                function_name = term[0]
+                if function_name in applications:
+                    applications[function_name].append(
+                        evaluate(term, program, {}))
+                else:
+                    applications[function_name] = [evaluate(term, program, {})]
+                expression_queue.append(term)
+    return applications

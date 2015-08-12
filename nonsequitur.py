@@ -2,7 +2,7 @@ import language
 import antiunification
 import time
 import unification
-
+import cPickle as pickle
 
 def substitute(function_name, place_holder, application_body):
     """replace the place_holder with function_name in application_body"""
@@ -101,9 +101,8 @@ def reduce_application_counts_for_applied_body_applications(
 def main(data):
     start = time.clock()
     # language.Function.reset_index()
-    data_program = language.Program()
     start_function = language.Function(name=language.Symbol('start'))
-    data_program.add_new_function(start_function)
+    data_program = language.Program(start_function)
     for i, character in enumerate(data):
         print 'processing character %s' % character
         data_program.get_function(start_function.name).body.append(character)
@@ -128,7 +127,7 @@ test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
 test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
 test3 = 'a1cqa2cma3coa4cpa5cra6c'
 
-print main(peas)
+pickle.dump(main(test3), open('test3', 'wb'))
 # v = language.make_variable()
 # language.Function(parameters=[v], body=['a', v, 'c'])
 
