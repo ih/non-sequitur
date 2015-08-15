@@ -4,6 +4,7 @@ import time
 import unification
 import cPickle as pickle
 
+
 def substitute(function_name, place_holder, application_body):
     """replace the place_holder with function_name in application_body"""
     substitution = []
@@ -105,10 +106,12 @@ def main(data):
     data_program = language.Program(start_function)
     for i, character in enumerate(data):
         print 'processing character %s' % character
+        print data_program
         data_program.get_function(start_function.name).body.append(character)
         check(start_function.name, data_program)
     end = time.clock()
     print end-start
+    print data_program
     return data_program
 
 
@@ -127,7 +130,7 @@ test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
 test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
 test3 = 'a1cqa2cma3coa4cpa5cra6c'
 
-pickle.dump(main(test3), open('test3', 'wb'))
+pickle.dump(main(peas), open('peas', 'wb'))
 # v = language.make_variable()
 # language.Function(parameters=[v], body=['a', v, 'c'])
 

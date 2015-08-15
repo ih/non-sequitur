@@ -43,6 +43,9 @@ class Symbol(object):
     def __eq__(self, other):
         return isinstance(other, Symbol) and self.value == other.value
 
+    def __ne__(self, other):
+        return not self == other
+
     def __str__(self):
         return self.value
 
@@ -93,7 +96,7 @@ class Program(object):
             inline_function = self.functions[inline_function]
         # optimize by keeping track of where applications are
         functions_with_applications = self.find_applications(inline_function)
-        assert len(functions_with_applications) == 1
+        # assert len(functions_with_applications) == 1
 
         def is_inline_application(term):
             return is_application(term) and term[0] == inline_function.name
@@ -119,15 +122,16 @@ class Program(object):
                 application_count += functions_used[function.name]
         return application_count
 
-    def compression_amount(self, function):
+    def compression_amount(self, function_name):
+        function = self.get_function(function_name)
         body_size = len(function.body)
         parameter_size = len(function.parameters)
         return (((body_size - (parameter_size + 1)) *
                  self.application_counts[function.name]) -
                 (body_size + parameter_size + 1))
 
-        def is_underutilized(self, function_name):
-            return self.compression_amount(function_name) < 1
+    def is_underutilized(self, function_name):
+        return self.compression_amount(function_name) < 1
 
 
 class Function(object):

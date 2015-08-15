@@ -32,6 +32,8 @@ def find_best(target_function, other_functions):
         for target_subexpression, other_subexpression in subexpression_pairs:
             abstracted_function = antiunify(
                 target_subexpression, other_subexpression)
+            if abstraction_exists(abstracted_function, other_functions):
+                break
             compressed_functions = unification.compress_functions(
                 abstracted_function, other_functions)
             compression_amount = compute_compression_amount(
@@ -154,7 +156,7 @@ def antiunify(expression1, expression2):
             (variable, parameters[variable][1]) for variable in variables])
     }
     new_function = language.Function(
-        name=language.Symbol('Temp'), parameters=variables,
+        name=language.Symbol(language.FUNCTION_PREFIX), parameters=variables,
         body=abstract_expression)
     return new_function
 
@@ -182,6 +184,14 @@ def generate_possible_pairs(expression_list1, expression_list2):
                     pairs[possible_pair] = True
     return [(utility.tuple2list(pair[0]), utility.tuple2list(pair[1])) for
             pair in pairs]
+
+
+def abstraction_exists(function, other_functions):
+    for other_function in other_functions:
+        if unification.is_equivalent_expression(
+                function.body, other_function.body):
+            return True
+    return False
 
 if __name__ == '__main__':
     test_function = language.Function(

@@ -17,6 +17,12 @@ class TestLanguage(unittest.TestCase):
         self.assertEquals(language.Symbol.prefix_counter['S'], 2)
         self.assertEquals(language.Symbol.prefix_counter['V'], 1)
 
+    def test_symbol_equality(self):
+        s0 = language.Symbol('S')
+        also_s0 = language.Symbol('S', 0)
+        self.assertEqual(s0, also_s0)
+        self.assertFalse(s0 != also_s0)
+
     def test_program_size(self):
         function1 = language.Function(
             parameters=[],

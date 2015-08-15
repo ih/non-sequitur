@@ -30,6 +30,8 @@ def find_best(target_function, possible_functions):
                     start_index: start_index+len(function.body)],
                 function.body, {})
             if bindings is not False:
+                assert(
+                    all([set(bindings.keys()) == set(function.parameters)]))
                 new_target_body = apply_function(
                     target_function.body, start_index, bindings, function)
                 size_difference = (
@@ -67,13 +69,15 @@ def unify(expression1, expression2, environment):
     evaluated_expression2 = evaluate(expression2, environment)
     if evaluated_expression1 == evaluated_expression2:
         return environment
-    elif language.is_variable(evaluated_expression1):
-        if occurs_within(
-                evaluated_expression1, evaluated_expression2, environment):
-            return False
-        else:
-            environment[evaluated_expression1] = evaluated_expression2
-            return environment
+    # make this a directional unify so assume expression2 starts as a function
+    # body and we are seeing if expression1 can be written as an application
+    # elif language.is_variable(evaluated_expression1):
+    #     if occurs_within(
+    #             evaluated_expression1, evaluated_expression2, environment):
+    #         return False
+    #     else:
+    #         environment[evaluated_expression1] = evaluated_expression2
+    #         return environment
     elif language.is_variable(evaluated_expression2):
         if occurs_within(
                 evaluated_expression2, evaluated_expression1, environment):
@@ -157,12 +161,12 @@ def compress_function(compressor, function):
         while start_index < len(current_subexpression):
             current_segment = current_subexpression[
                 start_index: start_index+len(compressor.body)]
-            bindings = unify(compressor.body, current_segment, {})
+            bindings = unify(current_segment, compressor.body, {})
             # bindings might be valid, but it might be the case current_segment
             # has variables that capture some of the parameters of compressor
-            if (bindings is not False and
-                all([parameter in bindings for parameter in
-                     compressor.parameters])):
+            if (bindings is not False):
+                assert(
+                    all([set(bindings.keys()) == set(compressor.parameters)]))
                 function_call = [compressor.name] + [
                     bindings[variable] for variable in compressor.parameters]
                 current_applied.append(function_call)

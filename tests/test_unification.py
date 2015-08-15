@@ -60,11 +60,11 @@ class TestUnificationMethods(unittest.TestCase):
         self.assertEqual(
             unification.unify(['+', x, 1], ['+', x, y], {}), {y: 1})
         self.assertEqual(
-            unification.unify(['+', x, z], ['+', x, y], {}), {z: y})
+            unification.unify(['+', x, z], ['+', x, y], {}), {y: z})
         self.assertEqual(
             unification.unify(['+', x, 1, 2], ['+', 1, x, x], {}), False)
         self.assertEqual(
-            unification.unify([x, y, 'a'], [y, x, x], {}), {y: 'a', x: y})
+            unification.unify([x, y, 'a'], [y, x, x], {}), {x: 'a', y: x})
         self.assertEqual(
             unification.unify([x, y, 'a'], [], {}), False)
         self.assertEqual(
