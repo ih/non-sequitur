@@ -22,7 +22,10 @@ def check(function_name, program):
     """Any time a function changes try to see if a compression can be made.
     First try to apply an existing pattern, then try to create a new pattern,
     then remove any under-utilized patterns."""
-    function = program.get_function(function_name)
+    try:
+        function = program.get_function(function_name)
+    except KeyError:
+        return
     # apply existing functions
     other_functions = program.get_all_functions()
     other_functions.remove(function)
@@ -35,9 +38,9 @@ def check(function_name, program):
             best_unification['applied_function'].name] += 1
         functions_to_check = [function]
         # applications in the appplied function body
-        inlined_functions = enforce_rule_utility(
+        changed_functions = enforce_rule_utility(
             best_unification['applied_function'].body, 1, program)
-        functions_to_check.extend(inlined_functions)
+        functions_to_check.extend(changed_functions)
         for function in functions_to_check:
             check(function.name, program)
     else:
@@ -52,15 +55,15 @@ def check(function_name, program):
                     compressed_function.name, compressed_function)
             new_function = best_antiunification['new_function']
             program.add_new_function(new_function)
-            new_function_application_count = program.application_count(
+            new_function_application_count = program.count_applications(
                 new_function.name)
             program.change_application_count(
                 new_function.name, new_function_application_count)
-            inlined_functions = enforce_rule_utility(
+            changed_functions = enforce_rule_utility(
                 new_function.body, new_function_application_count, program)
-            inlined_functions.extend(
+            changed_functions.extend(
                 best_antiunification['compressed_functions'])
-            functions_to_check = list(set(inlined_functions))
+            functions_to_check = list(set(changed_functions))
 
             for function_to_check in functions_to_check:
                 check(function_to_check.name, program)
@@ -68,14 +71,14 @@ def check(function_name, program):
 
 def enforce_rule_utility(body, application_count, program):
     # inline functions
-    inlined_functions = []
+    changed_functions = []
     underutilized_function_names = (
         reduce_application_counts_for_applied_body_applications(
             body, application_count, program))
     for function_name in underutilized_function_names:
-        program.inline(function_name)
-        inlined_functions.append(program.get_function(function_name))
-    return inlined_functions
+        assert function_name in program.functions
+        changed_functions.extend(program.inline(function_name))
+    return changed_functions
 
 
 def increase_application_counts_for_new_function_applications(
@@ -114,8 +117,7 @@ def main(data):
     print data_program
     return data_program
 
-
-test_data = 'abcdbcabcd'
+# test_data = 'abcdbcabcd'
 peas = """pease porridge hot,
 pease porridge cold,
 pease porridge in the pot,
@@ -126,13 +128,8 @@ some like it cold,
 some like it in the pot,
 nine days old."""
 
-test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
-test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
-test3 = 'a1cqa2cma3coa4cpa5cra6c'
+# test = 'aa1ccaa2ccaa3ccaa4ccaa5cc'
+# test2 = 'aa1ccdqaa2ccdpaa3ccdmaa4ccdnaa5ccd'
+# test3 = 'a1cqa2cma3coa4cpa5cra6c'
 
 pickle.dump(main(peas), open('peas', 'wb'))
-# v = language.make_variable()
-# language.Function(parameters=[v], body=['a', v, 'c'])
-
-# v = language.make_variable()
-# language.Function(parameters=[v], body=['a', 'a', v, 'c', 'c', 'd'])

@@ -72,6 +72,10 @@ class Program(object):
         self.functions[new_function.name] = new_function
         self.application_counts[new_function.name] = application_count
 
+    def remove_function(self, function_name):
+        del self.functions[function_name]
+        del self.application_counts[function_name]
+
     def set_function(self, function_name, function):
         self.functions[function_name] = function
 
@@ -104,6 +108,7 @@ class Program(object):
             function_with_application.body = substitute(
                 is_inline_application, inline_function.body,
                 function_with_application.body)
+        self.remove_function(inline_function.name)
         return functions_with_applications
 
     def find_applications(self, function):
@@ -114,12 +119,12 @@ class Program(object):
                 functions_with_applications.append(other_function)
         return functions_with_applications
 
-    def count_applications(self, function):
+    def count_applications(self, function_name):
         application_count = 0
         for other_function in self.functions.values():
             functions_used = get_functions_used(other_function.body)
-            if function.name in functions_used:
-                application_count += functions_used[function.name]
+            if function_name in functions_used:
+                application_count += functions_used[function_name]
         return application_count
 
     def compression_amount(self, function_name):

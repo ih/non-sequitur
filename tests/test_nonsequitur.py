@@ -28,8 +28,5 @@ class TestNonSequiturMethods(unittest.TestCase):
 
     def test_main2(self):
         test_data = 'a1cqa2cma3coa4cpa5cra6c'
-        program = nonsequitur.main(test_data)
-        print program
-
-if __name__ == '__main__':
-    unittest.main()
+        nonsequitur.main(test_data)
+        self.assertEqual(2, 2)
